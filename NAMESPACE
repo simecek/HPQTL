@@ -1,0 +1,7 @@
+export(add.qtl)
+export(extract.geno)
+export(genrel.matrix)
+export(heritability)
+export(scan1)
+export(sim.cross.geno)
+export(sim.cross.pheno)
