@@ -19,13 +19,13 @@
 scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
   
   cross <- calc.genoprob(cross)
-  output <- qtl::scanone(cross, method="hk")
+  output <- qtl::scanone(cross, method="hk", pheno.col=pheno.cols)
   
   if (procedure == "scanone") {
     return(output)
   }
   
-  if (is.null(G)) G <- genrel.matrix(cross, ...)   
+  G <- genrel.matrix(cross, ...)   
   
   if (procedure == "scanOne" || procedure == "regress-qtl") {
     for (p in 1:length(pheno.cols)) {
