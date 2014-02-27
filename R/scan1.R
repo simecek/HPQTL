@@ -27,7 +27,7 @@ scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
   
   G <- genrel.matrix(cross, ...)   
   
-  if (procedure == "scanOne" || procedure == "regress-qtl") {
+  if (procedure == "scanOne" || procedure == "vc-qtl") {
     for (p in 1:length(pheno.cols)) {
       Y <- cross$pheno[,pheno.cols[p]]
       EE <- diag(nind(cross))
@@ -50,7 +50,6 @@ scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
     }
     return(output)
   }
-  
   
   if (procedure == "scanOne-per-chr") {
     #extract genotype
@@ -75,5 +74,41 @@ scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
     }
     
     return(output)
-  }  
+  }
+  
+  if (procedure == "vc-qtl-per-chr") {
+    
+    #extract genotype
+    geno <- extract.geno(cross)
+    
+    # get a vector of markers' chromosomes
+    nmar <- nmar(cross)
+    chrs <- names(nmar)
+    marchrs <- c()
+    for (i in 1:length(nmar))
+      marchrs <- c(marchrs, rep(names(nmar)[i], nmar[i]))
+    
+    for (p in 1:length(pheno.cols)) {
+      Y <- cross$pheno[,pheno.cols[p]]
+      EE <- diag(nind(cross))
+      
+      for (c in chrs) {
+        G.minus.c <- genrel.matrix(geno[,marchrs!=c])
+        vc <- estVC(y=Y, v=list(AA=G.minus.c, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
+        V.c <- vc$par[2]*G.minus.c + vc$par[3]*EE
+        
+        # calculate A = V^-(1/2)
+        ei <- eigen(solve(V.c))
+        A <- ei$vectors %*% diag(sqrt(ei$values)) %*% t(ei$vectors)
+        
+        # use scanone to transformed Y
+        Y.transformed <- A %*% (Y - vc$par[1])
+        cross$pheno[,pheno.cols[p]] <- Y.transformed
+        output[marchrs==c,p+2] <- scanone(cross, method="hk", pheno.col = pheno.cols[p])[marchrs==c,3]
+      }
+    }  
+    return(output)  
+  }
+  
+  
 }

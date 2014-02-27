@@ -21,16 +21,15 @@
 add.qtl <- function(cross, qtl.pos, qtl.size, pheno.cols=1) {
   
   stopifnot(length(qtl.pos) == length(qtl.size))
-  
   geno <- extract.geno(cross)
   
+  # if position is relative, find the marker index
   if (all(qtl.pos<1)) qtl.pos <- floor(qtl.pos * ncol(geno)) + 1
-  pheno.sd <- apply(cross$pheno, 2, sd)
   
   for (p in pheno.cols) {
-    sd.geno <- apply(geno[, qtl.pos, drop=FALSE], 2, sd)
+    #sd.geno <- apply(geno[, qtl.pos, drop=FALSE], 2, sd)
     sd.pheno <- sd(cross$pheno[,p])
-    cross$pheno[,p] <- cross$pheno[,p] + sd.pheno * colSums(t(geno[, qtl.pos, drop=FALSE] - 2) * sqrt(qtl.size) / sd.geno)
+    cross$pheno[,p] <- cross$pheno[,p] + sd.pheno * colSums(t(geno[, qtl.pos, drop=FALSE] - 2) * sqrt(qtl.size))
   }
   
   cross

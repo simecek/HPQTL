@@ -1,8 +1,9 @@
-\name{scan1}
-\alias{scan1}
-\title{Genome Scan With a Single QTL Model}
+\name{scan1.threshold}
+\alias{scan1.threshold}
+\title{Significance Threshold of Genome Scan}
 \usage{
-scan1(cross, pheno.cols = 1, procedure = "scanone", ...)
+scan1.threshold(cross, pheno.cols = 1, procedure = "scanone",
+  n.perm = 100, alpha = 0.05, ...)
 }
 \arguments{
   \item{cross}{"\code{cross}" object}
@@ -11,13 +12,17 @@ scan1(cross, pheno.cols = 1, procedure = "scanone", ...)
 
   \item{procedure}{procedure to do the inference}
 
+  \item{n.perm}{number of permutations}
+
+  \item{alpha}{level of significance}
+
   \item{...}{parameters passed to \code{genrel.matrix}}
 }
 \value{
 numeric
 }
 \description{
-Genome Scan With a Single QTL Model
+Significance Threshold of Genome Scan
 }
 \examples{
 cross <- sim.cross.geno(250, nmar=10)

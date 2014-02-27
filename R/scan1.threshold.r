@@ -23,7 +23,7 @@ scan1.threshold <- function(cross, pheno.cols=1, procedure="scanone", n.perm=100
   cross <- calc.genoprob(cross)
   
   if (procedure == "scanone") {
-    trhold <- summary(scanone(cross.observed, n.perm=n.perm, pheno.col=pheno.cols, method="hk", verbose=FALSE), alpha=alpha)
+    trhold <- summary(scanone(cross, n.perm=n.perm, pheno.col=pheno.cols, method="hk", verbose=FALSE), alpha=alpha)
     output <- as.numeric(trhold)
   }
     
@@ -49,7 +49,42 @@ scan1.threshold <- function(cross, pheno.cols=1, procedure="scanone", n.perm=100
     output <- apply(maxs, 2, quantile, probs = 1 - alpha)
   }
   
-  if (procedure == "regress-qtl") {
+  if (procedure == "scanOne-per-chr") {
+    #extract genotype
+    geno <- extract.geno(cross)
+    
+    # get a vector of markers' chromosomes
+    nmar <- nmar(cross)
+    chrs <- names(nmar)
+    marchrs <- c() # chromosome of markers 
+    for (i in 1:length(nmar))
+      marchrs <- c(marchrs, rep(names(nmar)[i], nmar[i]))
+    output <- c()
+    
+    for (p in 1:length(pheno.cols)) {
+      Y <- cross$pheno[,pheno.cols[p]]
+      EE <- diag(nind(cross))
+      Intercept <- cbind(rep(1,nind(cross)))
+      perms <- matrix(nrow = length(chrs),ncol = n.perm)
+      
+      for (c in chrs) {
+        G.minus.c <- genrel.matrix(geno[,marchrs!=c])
+        vc.c <- estVC(y=Y, v=list(AA=G.minus.c, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
+        V <- vc.c$par[2]*G.minus.c + vc.c$par[3]*EE
+        Y.perm <- mvnpermute(Y, Intercept, V, n.perm)
+        for (i in 1:n.perm) {
+          lod <- scanOne(y=Y.perm[,i], gdat=geno[,marchrs==c], vc=V)$p / (2*log(10))
+          perms[which(chrs==c),i] <- max(lod)
+        }
+      }
+      
+      trhold <- quantile(apply(perms, 2, max), 1-alpha)
+      output <- c(output, trhold)
+    }
+
+  }  
+  
+  if (procedure == "vc-qtl") {
     geno <- extract.geno(cross)
     G <- genrel.matrix(geno, ...)
     EE <- diag(nind(cross))
@@ -67,31 +102,6 @@ scan1.threshold <- function(cross, pheno.cols=1, procedure="scanone", n.perm=100
     trhold <- summary(scanone(cross.observed, n.perm=n.perm, pheno.col=pheno.cols, method="hk", verbose=FALSE), alpha=alpha)
     output <- as.numeric(trhold)
   }
-    
-  if (procedure == "scanOne-per-chr") {
-    #extract genotype
-    geno <- extract.geno(cross)
-    
-    # get a vector of markers' chromosomes
-    nmar <- nmar(cross)
-    chrs <- names(nmar)
-    marchrs <- c() # chromosome of markers 
-    for (i in 1:length(nmar))
-      marchrs <- c(marchrs, rep(names(nmar)[i], nmar[i]))
-    
-    for (p in 1:length(pheno.cols)) {
-      Y <- cross$pheno[,pheno.cols[p]]
-      EE <- diag(nind(cross))
-      
-      for (c in chrs) {
-        G.minus.c <- genrel.matrix(geno[,marchrs!=c])
-        vc.c <- estVC(y=Y, v=list(AA=G.minus.c, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
-        output[marchrs==c,p+2] <- scanOne(y=Y, gdat=geno[,marchrs==c], vc=vc.c)$p / (2*log(10))
-      }
-    }
-    
-    return(output)
-  }  
   
-  return(output)
+  return(as.numeric(output))
 }
