@@ -2,10 +2,15 @@
 #' 
 #' @param cross "\code{cross}" object
 #' @param pheno.cols selection of phenotype's column(s)
-#' @param procedure procedure to do the inference
+#' @param procedure procedure to do the inference, see Details
 #' @param ... parameters passed to \code{genrel.matrix}
-#'
-#' @return numeric
+#' 
+#' @details Currently, three procedures fully implemented: \code{procedure = "qtl"} calls \code{scanone} 
+#' function from \code{qtl} package, \code{procedure = "QTLRel"} calls \code{scanOne} function from \code{QTLRel} package,
+#' \code{procedure = "QTLRel-pre-chr"} calls \code{scanOne} for each chromosome separately and genetic relationship matrix
+#' is estimated with this chromosome excluded.
+#' 
+#' @return \code{scanone} object
 #' 
 #' @keywords manip
 #'
@@ -13,8 +18,12 @@
 #' 
 #' @examples
 #' cross <- sim.cross.geno(250, nmar=10)
-#' cross$pheno <- sim.cross.pheno(0.5, cross)
-#' heritability(cross)
+#' cross$pheno <- sim.cross.pheno(c(0.01, 0.5, 0.75), cross)
+#' plot(scan1(cross, pheno.cols=1:3), lodcol=1:3)
+#' plot(scan1(cross, pheno.cols=1:3, procedure="scanOne"), lodcol=1:3)
+#' 
+#' # slow - do not run
+#' # plot(scan1(cross, pheno.cols=1:3, procedure="scanOne-per-chr"), lodcol=1:3)
 
 scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
   

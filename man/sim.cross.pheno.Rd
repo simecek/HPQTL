@@ -9,19 +9,30 @@ sim.cross.pheno(h2, cross, background = "GRM", ...)
 
   \item{cross}{\code{cross} object}
 
-  \item{background}{method to generate genetic background}
+  \item{background}{method to generate genetic background,
+  see Details}
 
   \item{...}{parameters passed to \code{genrel.matrix}}
 }
 \value{
-"\code{cross}" object
+matrix with phenotype data
 }
 \description{
 Generate Random Phenotype with Given Heritability
 }
+\details{
+Currently two polygenic backgrounds are supported: If
+\code{background = "GRM"} then the genetic effect is
+generated from a multivariate normal distribution with
+genetic similarity matrix as variance matrix. If
+\code{background = "all-snps"} then genetic effect is a sum
+of small gaussian distributed effect at every SNP location.
+}
 \examples{
 cross <- sim.cross.geno(250, nmar=10)
 cross$pheno <- sim.cross.pheno(0.5, cross)
+cross$pheno <- sim.cross.pheno(0.5, cross, method = "kinship")
+cross$pheno <- sim.cross.pheno(0.5, cross, background = "all-snps")
 }
 \keyword{manip}
 

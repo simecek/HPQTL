@@ -2,10 +2,10 @@
 #' 
 #' @param cross "\code{cross}" object
 #' @param pheno.cols selection of phenotype's column(s)
-#' @param qtl.pos position of QTL(s), qither number of markets or relative position in genome (between 0 and 1)
+#' @param qtl.pos position of QTL(s), either number of markers or relative position in genome (between 0 and 1)
 #' @param qtl.size size of QTL(s), 
 #'
-#' @return numeric
+#' @return "\code{cross}" object
 #' 
 #' @keywords manip
 #'
@@ -13,10 +13,10 @@
 #' 
 #' @examples
 #' cross <- sim.cross.geno(250, nmar=10)
-#' cross <- calc.genoprob(cross)
-#' plot(scanone(cross))
-#' cross.with.qtls <- add.qtl(cross, c(0.15,0.35), c(1,1))
-#' plot(scanone(cross.with.qtls))
+#' cross$pheno <- sim.cross.pheno(0.01, cross)
+#' plot(scan1(cross))
+#' cross <- add.qtl(cross, 0.75, 1)
+#' plot(scan1(cross))
 
 add.qtl <- function(cross, qtl.pos, qtl.size, pheno.cols=1) {
   

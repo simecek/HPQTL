@@ -58,7 +58,7 @@ Abney M, Ober C, McPeek MS (2002). "Quantitative trait
 homozygosity and association mapping and empirical
 genome-wide significance in large complex pedigrees:
 Fasting serum insulin levels in the Hutterites." American
-Journal of Human Genetics 70: 920–934.
+Journal of Human Genetics 70: 920-934.
 }
 \keyword{manip}
 

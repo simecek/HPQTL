@@ -24,6 +24,7 @@ Genetic Relationship Matrix
 cross <- sim.cross.geno(250, nmar=10)
 geno <- extract.geno(cross)
 genrel.matrix(geno)
+genrel.matrix(geno, method = "kinship")
 genrel.matrix(geno, expected.means = c(rep(2,190), rep(1.5,10)))
 }
 \keyword{manip}
