@@ -2,7 +2,7 @@ Package: HPQTL
 Title: HPQTL
 Description: Mapping, testing and simulation of traits with highly polygenic
     background
-Version: 0.1-4
+Version: 0.1-5
 Authors@R: c(person("Petr", "Simecek", role = c("aut", "cre", "ths"),
     email = "simecek@gmail.com"))
 Depends:
