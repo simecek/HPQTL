@@ -84,7 +84,23 @@ scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
     
     return(output)
   }
+
+  if (procedure == "blup") {
+    Z <- extract.geno(cross)
+    W <- Z %*% t(Z)
+    E <- diag(nrow(W))
+    
+    for (p in 1:length(pheno.cols)) {
+      Y <- cross$pheno[,pheno.cols[p]]
+      fit <- regress(Y~1, ~W)
+      Sigma <- fit$sigma["W"] * W + fit$sigma["In"] * E
+      u.est <- sqrt(fit$sigma["W"]) * t(Z) %*% (solve(Sigma, Y - fit$fitted)) 
+      output[,p+2] <- abs(u.est - median(u.est))
+    }
+    return(output)
+  }
   
+  # not working
   if (procedure == "vc-qtl-per-chr") {
     
     #extract genotype
@@ -112,7 +128,7 @@ scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
         
         # use scanone to transformed Y
         Y.transformed <- A %*% (Y - vc$par[1])
-        cross$pheno[,pheno.cols[p]] <- Y.transformed
+        cross$pheno[,p] <- Y.transformed
         output[marchrs==c,p+2] <- scanone(cross, method="hk", pheno.col = pheno.cols[p])[marchrs==c,3]
       }
     }  
