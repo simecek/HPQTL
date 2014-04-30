@@ -17,5 +17,6 @@
 
 sim.cross.geno <- function(nind = 250, ctype = "f2", nchr=20, chrlen=100, nmar=250) {
   map <- sim.map(len=rep(chrlen, nchr), n.mar=nmar)
-  sim.cross(map, type=ctype, n.ind=nind, model = NULL)
+  cross <- sim.cross(map, type=ctype, n.ind=nind, model = NULL)
+  calc.genoprob(cross)
 }

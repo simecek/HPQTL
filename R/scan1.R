@@ -2,7 +2,9 @@
 #' 
 #' @param cross "\code{cross}" object
 #' @param pheno.cols selection of phenotype's column(s)
+#' @param covar (additive) covariates
 #' @param procedure procedure to do the inference, see Details
+#' @param V genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
 #' @param ... parameters passed to \code{genrel.matrix}
 #' 
 #' @details Currently, three procedures fully implemented: \code{procedure = "qtl"} calls \code{scanone} 
@@ -25,40 +27,79 @@
 #' # slow - do not run
 #' # plot(scan1(cross, pheno.cols=1:3, procedure="scanOne-per-chr"), lodcol=1:3)
 
-scan1 <- function(cross, pheno.cols=1, procedure="scanone", ...) {
-  
-  cross <- calc.genoprob(cross)
-  output <- qtl::scanone(cross, method="hk", pheno.col=pheno.cols)
-  
-  if (procedure == "scanone") {
-    return(output)
+scan1 <- function(pheno, geno, covar=NULL, procedure=c("lm","lmmi","lmme","user-defined"), G=NULL, A=NULL, ...) {
+
+  W.inv<- function(W, symmetric=TRUE,inverse=TRUE){
+    eW <- eigen(W, symmetric=symmetric)
+    d <- eW$values
+    if (min(d) <0  && abs(min(d))>sqrt(.Machine$double.eps))
+      stop("'W' is not positive definite")
+    else d[d<=0]<- ifelse(inverse, Inf, 0)
+    A <- diag(d^ifelse(inverse, -0.5, 0.5)) %*% t(eW$vector)
+    A # t(A)%*%A = W^{-1}
   }
   
-  G <- genrel.matrix(cross, ...)   
+  procedure <- match.arg(procedure)
   
-  if (procedure == "scanOne" || procedure == "vc-qtl") {
-    for (p in 1:length(pheno.cols)) {
-      Y <- cross$pheno[,pheno.cols[p]]
-      EE <- diag(nind(cross))
-      vc <- estVC(y=Y, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
-      if (procedure == "scanOne") {
-        output[,p+2] <- scanOne(y=Y, gdat=extract.geno(cross), vc=vc)$p / (2*log(10))
+  if (procedure == "lm")   G <- NULL
+  if (procedure == "lmmi") G <- genrel.matrix(geno, ...) 
+  if (procedure == "lmme") {
+    G <- list()
+    for (i in 1:length(geno$probs)) {
+      G[[i]] <- genrel.matrix(geno, skip.chr=i, ...)
+    }
+  } 
+  
+  if (is.null(A)) {
+    if (is.null(G)) A <- NULL
+    if (is.matrix(G)) {
+      EE <- diag(nrow(G))
+      if (is.null(covar)) {
+        vc <- estVC(y=pheno[,1], v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
       } else {
-        # variance matrix
-        V <- vc$par[2]*G + vc$par[3]*EE
-        
-        # calculate A = V^-(1/2)
-        ei <- eigen(solve(V))
-        A <- ei$vectors %*% diag(sqrt(ei$values)) %*% t(ei$vectors)
-        
-        # Y is tranformed to remove a correlation structure
-        Y.transformed <- A %*% (Y - vc$par[1])
-        cross$pheno[,pheno.cols[p]] <- Y.transformed
-        output[,p+2] <- scanone(cross, method="hk", pheno.col = pheno.cols[p])[,3]
+        vc <- estVC(y=pheno[,1], covar, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
+      }  
+      V <- vc$par["AA"]*G + vc$par["EE"]*EE
+      A <- W.inv(V)
+    }
+    if (is.list(G)) {
+      A <- list()
+      for (i in 1:length(geno$probs)) {
+        EE <- diag(nrow(G[[i]]))
+        if (is.null(covar)) {
+          vc <- estVC(y=pheno[,1], v=list(AA=G[[i]], DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
+        } else {
+          vc <- estVC(y=pheno[,1], covar, v=list(AA=G[[i]], DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
+        }  
+        V <- vc$par["AA"]*G[[i]] + vc$par["EE"]*EE
+        A[[i]] <- W.inv(V)
       }  
     }
-    return(output)
+  }  
+
+  nind <- nrow(geno$probs[[1]]) # number of individuals
+  output <- NULL
+  
+  for (i in 1:length(geno$probs)) {
+    if (is.list(A)) A.chr <- A[[i]] else A.chr <- A
+    
+    if (!is.null(A.chr)) ynew <- A.chr %*% pheno else ynew <- pheno
+    if (!is.null(A.chr)) covarnew <- A.chr %*% cbind(rep(1,nind),covar) else covarnew <- cbind(rep(1,nind),covar)
+    rss0 <- sum(lsfit(y=ynew,x=covarnew,intercept=FALSE)$residuals^2)
+    
+    rss1 <- rep(0.0, nrow(geno$marker[[i]]))
+    for (j in 1:nrow(geno$marker[[i]])){
+      if (!is.null(A.chr)) xnew <- A.chr %*% cbind(geno$probs[[i]][,,j],covar) else xnew <- cbind(geno$probs[[i]][,,j],covar)
+      rss1[j] <- sum(lsfit(y=ynew,x=xnew,intercept=FALSE)$residuals^2)
+    }
+    
+    output.chr <- geno$markers[[i]][,-1]
+    rownames(output.chr) <- geno$markers[[i]][,1]
+    output.chr$lod <- nind/2 * (log10(rss0) - log10(rss1))
+    output <- rbind(output, output.chr)
+    class(output) <- c("scanone", "data.frame")
   }
+  return(output)
   
   if (procedure == "scanOne-per-chr") {
     #extract genotype

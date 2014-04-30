@@ -1,9 +1,9 @@
 #' Genetic Relationship Matrix
 #' 
 #' 
-#' @param geno \code{cross} object or a genotype matrix (\code{nind} rows, \code{totalmar} columns)
-#' @param method how to calculate similarity matrix ('additive', 'additive-diag1', 'kinship')
-#' @param expected.means a vector of expected marker means, if \code{NULL} means are estimated from data    
+#' @param geno \code{genotype.probs} object or \code{cross} object
+#' @param method how to calculate similarity matrix ('allele-2f-additive', 'allele-multif-additive')    
+#' @exclude.chrs
 #'
 #' @return square matrix (\code{nind} rows, \code{nind} columns)
 #' 
@@ -15,38 +15,51 @@
 #' cross <- sim.cross.geno(250, nmar=10)
 #' geno <- extract.geno(cross)
 #' genrel.matrix(geno)
-#' genrel.matrix(geno, method = "kinship")
-#' genrel.matrix(geno, expected.means = c(rep(2,190), rep(1.5,10)))
+#' genrel.matrix(geno, method = "allele-multif-additive")
 
-genrel.matrix <- function(geno, method="additive", expected.means=NULL) {
+genrel.matrix <- function(geno, method=c('allele-2f-additive', 'allele-multif-additive'), skip.chrs=c()) {
   
-  # if not matrix then extract genotype
+  method = match.arg(method)
+  
+  # if not genotype.probs then extract genotype probs
   if ("cross" %in% class(geno)) geno <- extract.geno(geno)
-  
-  # if means not give, estimate them
-  if (is.null(expected.means)) expected.means <- colMeans(geno) 
-  
-  if (method == "kinship") {
-    K <- diag(rep(1, nrow(geno)))
-    for (i in 1:(nrow(geno)-1))
-      for (j in (i+1):nrow(geno))
-        K[i,j] <- K[j,i] <- 1 - mean(abs(geno[i,]-geno[j,]))/2
+   
+  if (method == 'allele-2f-additive') {
+    score.matrix <- matrix(c(1,1/2,0,1/2,1,1/2,0,1/2,1),3,3)
+    
+    K <- matrix(0, nrow(geno$probs[[1]]), nrow(geno$probs[[1]]))
+    for (i in setdiff(1:length(geno$probs),skip.chrs))
+      if (length(geno$calls[[i]])==3) { # AA,AB,BB calls
+        for (j in 1:dim(geno$probs[[i]])[3]) # for each snp get kinship
+          K <- K + geno$probs[[i]][,,j] %*% score.matrix %*% t(geno$probs[[i]][,,j])
+      } else { # AA,AB calls
+        for (j in 1:dim(geno$probs[[i]])[3]) # for each snp get kinship
+          K <- K + geno$probs[[i]][,,j] %*% score.matrix[1:2,1:2] %*% t(geno$probs[[i]][,,j])
+      }    
+      
+    # normalization to diag(K) == 1
+    norm.factor <- sqrt(diag(K))
+    K <- diag(1/norm.factor) %*% K %*%  diag(1/norm.factor)
+    
     return(K)
   }
   
-  if (method == "additive" || method == "additive-diag1") {
+  if (method == 'allele-multif-additive') {
     
-    G <- (geno - expected.means) %*% t(geno - expected.means)
+    K <- matrix(0, nrow(geno$probs[[1]]), nrow(geno$probs[[1]]))
+    for (i in setdiff(1:length(geno$probs),skip.chrs)) {
+      score.matrix <- diag(length(geno$calls[[i]]))
+      for (j in 1:dim(geno$probs[[i]])[3]) # for each snp get kinship
+        K <- K + geno$probs[[i]][,,j] %*% score.matrix %*% t(geno$probs[[i]][,,j])
+    }    
     
-    # normalization
-    if (method == "additive") {
-      G <- G / mean(diag(G))
-    } else {
-      norm.factor <- sqrt(diag(G))
-      G <- diag(1/norm.factor) %*% G %*%  diag(1/norm.factor)
-    }
+    # normalization to diag(K) == 1
+    norm.factor <- sqrt(diag(K))
+    K <- diag(1/norm.factor) %*% K %*%  diag(1/norm.factor)
     
-    return(G)
+    return(K)
   }
+  
+  stop("The method is not yet implemented")  
   
 }

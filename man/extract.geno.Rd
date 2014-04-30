@@ -1,6 +1,6 @@
 \name{extract.geno}
 \alias{extract.geno}
-\title{Extract Genotype Matrix}
+\title{Extract Genotype Probabilities}
 \usage{
 extract.geno(cross)
 }
@@ -8,10 +8,16 @@ extract.geno(cross)
   \item{cross}{"\code{cross}" object}
 }
 \value{
-matrix (\code{nind} rows, \code{totalmar} columns)
+\code{genotype.probs} is a list of three components
+\itemize{ \item \code{probs} \item \code{calls} \item
+\code{markers} }
 }
 \description{
-Extract Genotype Matrix
+Extract Genotype Probabilities
+}
+\details{
+Extract genotype prob. array from "\code{qtl::cross}"
+object. Stored as a list
 }
 \examples{
 cross <- sim.cross.geno(250, nmar=10)
