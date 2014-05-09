@@ -51,7 +51,7 @@ To install the package directly from Github, use `devtools::install_github`:
 ```S
     library(devtools)
     install_github("simecek/HPQTL")
-```   
+```
 
 ## See also
 
