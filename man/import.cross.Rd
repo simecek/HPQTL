@@ -1,8 +1,8 @@
-\name{extract.geno}
-\alias{extract.geno}
+\name{import.cross}
+\alias{import.cross}
 \title{Import qtl/DOQTL cross}
 \usage{
-extract.geno(cross)
+import.cross(cross)
 }
 \arguments{
   \item{cross}{"\code{cross}" object}
@@ -14,7 +14,7 @@ genotype probabilities (subjects x calls x markers) or a
 list of such arrays \item \code{calls} possible genotype
 calls \item \code{markers} }
 
-\code{geno} object
+\code{hpcross} object
 }
 \description{
 Import qtl/DOQTL cross

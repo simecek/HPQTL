@@ -2,15 +2,21 @@
 \alias{scan1}
 \title{Genome Scan With a Single QTL Model}
 \usage{
-scan1(cross, pheno.cols = 1, procedure = "scanone", ...)
+scan1(pheno, geno, covar = NULL, procedure = c("lm", "lmmi", "lmme",
+  "user-defined"), G = NULL, A = NULL, ...)
 }
 \arguments{
   \item{cross}{"\code{cross}" object}
 
   \item{pheno.cols}{selection of phenotype's column(s)}
 
+  \item{covar}{(additive) covariates}
+
   \item{procedure}{procedure to do the inference, see
   Details}
+
+  \item{V}{genetic similarity matrix or a list of genetic
+  similarity matrices or \code{NULL}}
 
   \item{...}{parameters passed to \code{genrel.matrix}}
 }

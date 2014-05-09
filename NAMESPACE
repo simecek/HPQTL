@@ -1,6 +1,6 @@
 export(add.qtl)
 export(extract.geno)
-export(genrel.matrix)
+export(gensim.matrix)
 export(heritability)
 export(scan1)
 export(scan1.threshold)
