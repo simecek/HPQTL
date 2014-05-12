@@ -13,6 +13,8 @@ Three methods have been implemented
 * linear mixed model (LMM)
 * linear mixed model with specific genetic similarity matrix for each chromosome (LMM-L1O)
 
+![Under construction](http://www.omgwiki.org/model-interchange/lib/exe/fetch.php?cache=cache&w=350&h=317&media=under-construction.gif) Currently under construction. Some examples / manual pages do not match the code.
+
 ## Example
 
 ```S

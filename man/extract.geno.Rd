@@ -1,11 +1,11 @@
 \name{extract.geno}
 \alias{extract.geno}
-\title{Import qtl/DOQTL cross}
+\title{Import qtl / DOQTL cross}
 \usage{
 extract.geno(cross)
 }
 \arguments{
-  \item{cross}{"\code{cross}" object}
+  \item{cross}{"\code{cross}" object or DO qtl}
 }
 \value{
 \code{genotype.probs} object is a list of three components
@@ -17,7 +17,7 @@ calls \item \code{markers} }
 \code{geno} object
 }
 \description{
-Import qtl/DOQTL cross
+Import qtl / DOQTL cross
 }
 \details{
 Extract genotype prob. array from "\code{qtl::cross}"

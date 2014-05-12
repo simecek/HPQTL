@@ -28,40 +28,12 @@
 #' # plot(scan1(cross, pheno.cols=1:3, procedure="scanOne-per-chr"), lodcol=1:3)
 
 scan1 <- function(pheno, geno, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G=NULL, ...) {
-
-  W.inv<- function(W, symmetric=TRUE,inverse=TRUE){
-    eW <- eigen(W, symmetric=symmetric)
-    d <- eW$values
-    if (min(d) <0  && abs(min(d))>sqrt(.Machine$double.eps))
-      stop("'W' is not positive definite")
-    else d[d<=0]<- ifelse(inverse, Inf, 0)
-    A <- diag(d^ifelse(inverse, -0.5, 0.5)) %*% t(eW$vector)
-    A # t(A)%*%A = W^{-1}
-  }
-  
-  variance.decomposition.old <- function(y, covar, G) {
-    EE <- diag(nrow(G))
-    if (is.null(covar)) {
-      vc <- estVC(y=pheno, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
-    } else {
-      vc <- estVC(y=pheno, covar, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
-    }  
-    V <- vc$par["AA"]*G + vc$par["EE"]*EE
-    A <- W.inv(V)
-    return(list(A=A, V=V, var.g = vc$par["AA"], var.e = vc$par["EE"]))
-  }
-  
-  variance.decomposition <- function(y, covar, G) {
-    fit <- regress(y~.,~G, data=as.data.frame(cbind(y=y, covar))) 
-    V <- fit$sigma["G"] * G + fit$sigma["In"] * diag(nrow(G))
-    A <- W.inv(V)
-    return(list(A=A, V=V, var.g = fit$sigma["G"], var.e = fit$sigma["In"]))
-  }
-  
-  nonNA <- !is.na(pheno)
-  
+ 
   procedure <- match.arg(procedure)
   
+  nonNA <- !is.na(pheno)
+
+
   # linear model
   if (procedure == "LM") G <- A <- NULL
   

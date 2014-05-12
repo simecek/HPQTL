@@ -12,9 +12,10 @@
 #' check.genotype.probs(geno)
 
 check.genotype.probs <- function(geno) {
-  stopifnot("genotype.probs" %in% class(geno)) # geno is genotype.probs" class 
-  stopifnot(all.equal(length(geno$probs), length(geno$markers), length(geno$calls))) # same length of lists
-  stopifnot( length(unique(sapply(geno$probs, dim)[1,])) == 1 ) # number of subjets is equal
-  stopifnot( sapply(geno$probs, dim)[2,] == sapply(geno$calls,length) ) # number of possible calls match
-  stopifnot( sapply(geno$probs, dim)[3,] == sapply(geno$markers,nrow) ) # number of possible markers match
+  stopifnot("genotype.probs" %in% class(geno)) # geno is genotype.probs" class
+  stopifnot(class(geno$probs) == "array")
+  stopifnot( dim(geno$probs)[1] == length(geno$subjects) ) # number of subjets equals
+  stopifnot( dim(geno$probs)[2] == length(geno$calls) ) # number of possible calls equals
+  stopifnot( dim(geno$probs)[3] == nrow(geno$markers) ) # number of markers equals
+  if (!is.null(geno$chromosomes)) stopifnot(sort(unique(geno$markers$chr)) == sort(geno$chromosomes$chr)) 
 }

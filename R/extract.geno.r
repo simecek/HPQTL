@@ -1,8 +1,8 @@
-#' Import qtl/DOQTL cross
+#' Import qtl / DOQTL cross
 #'
 #' @details Extract genotype prob. array from "\code{qtl::cross}" object. 
 #'   
-#' @param cross "\code{cross}" object
+#' @param cross "\code{cross}" object or DO qtl 
 #'
 #' @return \code{genotype.probs} object is a list of three components 
 #' \itemize{ 
@@ -28,7 +28,11 @@ extract.geno <- function(cross) {
   
   if ("cross" %in% class(cross)) {
   
-    # check that calc.genoprob has been called
+    # check that cross is either bc or f2
+    if (class(cross)[1] != "bc" & class(cross)[1] != "f2")
+      warning("The class of cross should be either 'bc' or 'f2'.")
+      
+    # check if calc.genoprob has been called
     if (!("prob" %in% names(cross$geno[[1]]))) {
       warning("First running calc.genoprob.")
       cross <- calc.genoprob(cross)
@@ -55,8 +59,8 @@ extract.geno <- function(cross) {
     
     # table of markers and their positions
     markers <- data.frame(marker = do.call("c", lapply(cross$geno, function(x) names(x$map))),
-                                  chr = do.call("c", mapply(rep, x = names(nmar(cross)), each = nmar(cross))),
-                                  pos = do.call("c", lapply(cross$geno, function(x) as.vector(x$map))))
+                          chr = do.call("c", mapply(rep, x = names(nmar(cross)), each = nmar(cross), SIMPLIFY = FALSE)),
+                          pos = do.call("c", lapply(cross$geno, function(x) as.vector(x$map))))
     
     # see help for 'geno' class
     geno <- list(probs = abind(list.of.probs, along=3), 
@@ -66,7 +70,7 @@ extract.geno <- function(cross) {
                  chromosomes = data.frame(chr = names(cross$geno), type = as.vector(chrtype)))
   }
   
-  # DO array with 
+  # 3-dim DO array with attribute markers
   if ("array" %in% class(cross)) {
     
     subjects <- dimnames(cross)[[1]]
@@ -74,7 +78,7 @@ extract.geno <- function(cross) {
     markers <- attr(cross, "markers")
     chromosomes <- attr(cross, "chromosomes")
     
-    # if markers or chromosomes are missing, try to get provisional
+    # if markers or chromosomes are missing, try to get provisional ids
     if (is.null(markers)) {
       warning("Attribute 'markers' is missing")
       markers <- data.frame(marker = dimnames(cross)[[3]])
