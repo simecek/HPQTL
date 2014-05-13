@@ -19,7 +19,7 @@
 heritability <- function(cross, pheno.cols=1, se=FALSE, ...) {
   
   # get genetic relationship matrix
-  G <- genrel.matrix(cross, ...)
+  G <- gensim.matrix(cross, ...)
   output <- c()
   if (se) output.se <- c()
   

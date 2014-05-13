@@ -43,7 +43,7 @@ scan1 <- function(pheno, geno, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G=
       warning("Genetic similarity matrix G should be specified, use 'gensim.matrix' function.")
       G <- gensim.matrix(geno, ...)
     }  
-    A <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[nonNA,nonNA])$A
+    A <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[nonNA,nonNA],...)$A
   }  
   
   # linear mixed model, leave one out
@@ -59,7 +59,7 @@ scan1 <- function(pheno, geno, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G=
     
     A <- list()
     for (c in geno$chromosomes$chr) {
-      A[[c]] <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[[c]][nonNA,nonNA])$A
+      A[[c]] <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[[c]][nonNA,nonNA],...)$A
     }
   } 
   
