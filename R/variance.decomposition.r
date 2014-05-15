@@ -29,9 +29,9 @@ variance.decomposition <- function(y, covar, G, package = c("regress", "QTLRel")
   } else {
     EE <- diag(nrow(G))
     if (is.null(covar)) {
-      vc <- estVC(y=pheno, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
+      vc <- estVC(y=y, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
     } else {
-      vc <- estVC(y=pheno, covar, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
+      vc <- estVC(y=y, covar, v=list(AA=G, DD=NULL, HH=NULL, AD=NULL, MH=NULL, EE=EE))
     }  
     V <- vc$par["AA"]*G + vc$par["EE"]*EE
     A <- half.inv(V)
