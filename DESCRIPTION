@@ -13,11 +13,7 @@ Depends:
     QTLRel,
     abind
 Suggests:
-    knitr    
+    knitr
 License: GPL-3
 LazyData: true
-<<<<<<< HEAD
 URL: https://github.com/simecek/HPQTL
-=======
-URL: https://github.com/simecek/additivityTests
->>>>>>> a5b1d23fd4d9b8bae57422f9513e40d32f09d232

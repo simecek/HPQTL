@@ -33,7 +33,11 @@ gensim.matrix <- function(geno, method=c('allele-2f-additive', 'allele-multif-ad
   }
   
   if (method == 'allele-2f-additive') {
-    score.matrix <- matrix(c(1,1/2,0,1/2,1,1/2,0,1/2,1),3,3)
+    if (length(geno$calls)<2 | length(geno$calls)>3) stop("Method 'allele-2f-additive' expects 2 founders.")
+    score.matrix <- switch(length(geno$calls),
+                           NULL,
+                           matrix(c(1,1/2,1/2,1),2,2),                     
+                           matrix(c(1,1/2,0,1/2,1,1/2,0,1/2,1),3,3)) 
     K <- matrix(0, nrow(geno$probs), nrow(geno$probs))
     
     for (j in sel.snps) # for each snp get kinship

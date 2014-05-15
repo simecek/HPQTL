@@ -1,17 +1,14 @@
 \name{half.inv}
 \alias{half.inv}
-\title{W^(-1/2) matrix operation}
+\title{Half-inverse matrix operation}
 \usage{
 half.inv(W, symmetric = TRUE, inverse = TRUE)
 }
 \arguments{
   \item{W}{matrix}
 }
-\value{
-matrix \code{A} such that \code{t(A)%*%A = W^{-1}}
-}
 \description{
-W^(-1/2) matrix operation
+Half-inverse matrix operation
 }
 \examples{
 cross <- sim.cross.geno(250, nmar=10)

@@ -1,6 +1,4 @@
-#' W^(-1/2) matrix operation
-#' 
-#' @author copied from QTLRel
+#' Half-inverse matrix operation
 #'  
 #' @param W matrix
 #'
@@ -9,9 +7,11 @@
 #' large complex pedigrees: Fasting serum insulin levels in the
 #' Hutterites." American Journal of Human Genetics 70: 920-934.
 #'
-#' @return matrix \code{A} such that \code{t(A)%*%A = W^{-1}}
-#' 
 #' @keywords manip
+#' 
+#' @value list
+#'
+#' @author copied from QTLRel
 #'
 #' @examples
 #' cross <- sim.cross.geno(250, nmar=10)
