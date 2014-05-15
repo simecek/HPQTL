@@ -2,7 +2,7 @@ Package: HPQTL
 Title: HPQTL
 Description: Mapping, testing and simulation of traits with highly polygenic
     background
-Version: 0.3-0
+Version: 0.3-1
 Authors@R: c(person("Petr", "Simecek", role = c("aut", "cre", "ths"),
     email = "simecek@gmail.com"))
 Depends:
@@ -10,6 +10,10 @@ Depends:
     MASS,
     regress,
     qtl,
+    QTLRel,
     abind
+Suggests:
+    knitr    
 License: GPL-3
 LazyData: true
+URL: https://github.com/simecek/additivityTests
