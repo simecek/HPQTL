@@ -100,6 +100,6 @@ extract.geno <- function(cross) {
   }
     
   class(geno) <- c("genotype.probs", "list")
-  #check.genotype.probs(geno)
+  check.genotype.probs(geno)
   geno
 }
