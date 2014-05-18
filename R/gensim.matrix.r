@@ -17,19 +17,25 @@
 #' gensim.matrix(geno)
 #' gensim.matrix(geno, method = "allele-multif-additive")
 
-gensim.matrix <- function(geno, method=c('allele-2f-additive', 'allele-multif-additive', 'allele-multif-cosine'), 
-                          skip.chrs=c()) {
+gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allele-multif-additive', 'allele-multif-cosine'),
+                          procedure = c("LMM", "LMM-L1O", "LM"), subjects=seq(geno$subjects), markers = seq(NROW(geno$markers))) {
   
+  # match arguments
   method = match.arg(method)
+  procedure = match.arg(procedure)
   
   # if not genotype.probs then extract genotype probs
   if ("cross" %in% class(geno)) geno <- extract.geno(geno)
+  check.genotype.probs(geno)
 
-  # select all snps but those from chromosome skip.chrs
-  if (length(skip.chrs)>0) {
-    sel.snps <- which(!(geno$markers$chr %in% skip.chrs))
-  } else {
-    sel.snps <- 1:dim(geno$probs)[[3]] # all
+  # for linear model no genetic similarity matrix is needed
+  if (procedure == "LM") G <- NULL
+  
+  # for LMM-L1O call it recursively for each cheomosome
+  if (procedure == "LMM-L1O") {
+    G <- list()
+    for (c in geno$chromosomes$chr)
+      G[[c]] <- gensim.matrix(geno, method=method, procedure="LMM", subjects=subjects, markers = which(geno$markers$chr))
   }
   
   if (method == 'allele-2f-additive') {

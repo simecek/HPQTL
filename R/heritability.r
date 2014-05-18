@@ -16,18 +16,18 @@
 #' cross$pheno <- sim.cross.pheno(0.5, cross)
 #' heritability(cross, se=TRUE)
 
-heritability <- function(cross, pheno.cols=1, se=FALSE, ...) {
+heritability <- function(geno, pheno, pheno.cols=1, covar=NULL, se=FALSE, G = NULL, ...) {
   
   # get genetic relationship matrix
-  G <- gensim.matrix(cross, ...)
+  if (is.null(G)) G <- gensim.matrix(cross, ...)
   output <- c()
   if (se) output.se <- c()
   
   for (p in pheno.cols) {
   
     # fit the mixed model
-    Y <- cross$pheno[,p]
-    rg.fit <- regress(Y~1, ~G)
+    y <- pheno[,p]
+    rg.fit <- regress(y~covar, ~G)
   
     # estimate heritability
     h2 <- as.numeric(rg.fit$sigma[1] / sum(rg.fit$sigma))

@@ -1,3 +1,3 @@
 library(HPQTL)
-library(mypackage)
+library(testthat)
 test_package("HPQTL")

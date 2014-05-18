@@ -27,13 +27,20 @@
 #' # slow - do not run
 #' # plot(scan1(cross, pheno.cols=1:3, procedure="scanOne-per-chr"), lodcol=1:3)
 
-scan1 <- function(pheno, geno, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G=NULL, ...) {
+scan1 <- function(geno, pheno, pheno.col=1, addcovar.col=c(), procedure=c("LM","LMM","LMM-L1O"), G=NULL, 
+                  subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), Intercept=rep(1,NROW(pheno)), ...) {
  
   procedure <- match.arg(procedure)
   
-  nonNA <- !is.na(pheno)
-
-
+  nonNA <- which(!is.na(pheno))
+  
+  if (shuffle) {
+    perm <- sample(nonNA)
+    pheno <- pheno[perm]
+    covar = covar[perm,]
+    #G is already adjusted
+  }
+  
   # linear model
   if (procedure == "LM") G <- A <- NULL
   
@@ -63,7 +70,7 @@ scan1 <- function(pheno, geno, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G=
     }
   } 
   
-  nind <- sum(nonNA) # number of individuals
+  nind <- length(nonNA) # number of individuals
   output <- data.frame(chr=geno$markers$chr, pos=geno$markers$pos, lod=rep(0, nrow(geno$markers)), row.names=geno$markers$marker)
   
   for (c in geno$chromosomes$chr) {
@@ -71,7 +78,7 @@ scan1 <- function(pheno, geno, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G=
     
     # if A.chr is given, transform variables
     if (!is.null(A.chr)) ynew <- A.chr %*% pheno[nonNA] else ynew <- pheno[nonNA]
-    if (!is.null(A.chr)) covarnew <- A.chr %*% cbind(rep(1,nind),covar[nonNA,]) else covarnew <- cbind(rep(1,nind),covar[nonNA,])
+    if (!is.null(A.chr)) covarnew <- A.chr %*% cbind(Intercept,covar)[nonNA,] else covarnew <- cbind(Intercept,covar)[nonNA,]
     
     # null model
     rss0 <- sum(lsfit(y=ynew,x=covarnew,intercept=FALSE)$residuals^2)
