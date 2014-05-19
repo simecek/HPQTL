@@ -2,8 +2,9 @@
 \alias{scan1}
 \title{Genome Scan With a Single QTL Model}
 \usage{
-scan1(pheno, geno, covar = NULL, procedure = c("LM", "LMM", "LMM-L1O"),
-  G = NULL, ...)
+scan1(geno, pheno, pheno.cols = 1, covar = NULL, procedure = c("LM",
+  "LMM", "LMM-L1O"), G, subjects = seq(geno$subjects),
+  markers = seq(NROW(geno$markers)), Intercept = rep(1, NROW(pheno)), ...)
 }
 \arguments{
   \item{cross}{"\code{cross}" object}

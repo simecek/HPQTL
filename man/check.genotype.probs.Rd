@@ -2,7 +2,7 @@
 \alias{check.genotype.probs}
 \title{Check \code{genotype.probs} object}
 \usage{
-check.genotype.probs(geno)
+check.genotype.probs(geno, lmm.l1o = FALSE)
 }
 \arguments{
   \item{geno}{a \code{genotype.probs} object}

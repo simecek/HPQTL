@@ -2,7 +2,8 @@
 \alias{heritability}
 \title{Estimate Heritability}
 \usage{
-heritability(cross, pheno.cols = 1, se = FALSE, ...)
+heritability(geno, pheno, pheno.cols = 1, covar = NULL, se = FALSE,
+  G = NULL, ...)
 }
 \arguments{
   \item{cross}{"\code{cross}" object}

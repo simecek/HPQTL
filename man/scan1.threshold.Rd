@@ -2,8 +2,8 @@
 \alias{scan1.threshold}
 \title{Significance Threshold of Genome Scan}
 \usage{
-scan1.threshold(cross, pheno.cols = 1, procedure = "scanone",
-  n.perm = 100, alpha = 0.05, ...)
+scan1.threshold(pheno, geno, covar = NULL, procedure = c("LM", "LMM",
+  "LMM-L1O"), G = NULL, n.perm = 100, alpha = 0.05, ...)
 }
 \arguments{
   \item{cross}{"\code{cross}" object}

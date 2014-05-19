@@ -27,70 +27,85 @@
 #' # slow - do not run
 #' # plot(scan1(cross, pheno.cols=1:3, procedure="scanOne-per-chr"), lodcol=1:3)
 
-scan1 <- function(geno, pheno, pheno.col=1, addcovar.col=c(), procedure=c("LM","LMM","LMM-L1O"), G=NULL, 
-                  subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), Intercept=rep(1,NROW(pheno)), ...) {
+scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G, 
+                  subjects=seq(geno$subjects), markers=seq(NROW(geno$markers)), 
+                  Intercept=rep(1,length(geno$subjects)), ...) {
  
   procedure <- match.arg(procedure)
   
-  nonNA <- which(!is.na(pheno))
-  
-  if (shuffle) {
-    perm <- sample(nonNA)
-    pheno <- pheno[perm]
-    covar = covar[perm,]
-    #G is already adjusted
-  }
-  
-  # linear model
-  if (procedure == "LM") G <- A <- NULL
-  
-  # linear mixed model
-  if (procedure == "LMM") {
-    if (is.null(G)) {
-      warning("Genetic similarity matrix G should be specified, use 'gensim.matrix' function.")
-      G <- gensim.matrix(geno, ...)
-    }  
-    A <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[nonNA,nonNA],...)$A
+  # if geno is not 'genotype.probs', export genotype
+  if (!('genotype.probs' %in% class(geno))) {
+    # if phenotype is missing, try to extract it
+    if (missing(pheno) & "pheno" %in% names(geno))
+      pheno <- geno$pheno
+    geno <- extract.geno(geno)
   }  
   
-  # linear mixed model, leave one out
-  if (procedure == "LMM-L1O") {
-    if (is.null(geno$chromosomes) | is.null(geno$markers$chr) | is.null(geno$markers$pos))
-      stop("For LMM-L1O procedure, markers MUST be mapped to chromosomes.")
-    if (is.null(G)) {
-      warning("Genetic similarity matrix G should be specified, use 'gensim.matrix' function.")
-      G <- list()
-      for (c in geno$chromosomes$chr)
-        G[[c]] <- gensim.matrix(geno, skip.chr=c, ...)
-    }
-    
-    A <- list()
-    for (c in geno$chromosomes$chr) {
-      A[[c]] <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[[c]][nonNA,nonNA],...)$A
-    }
-  } 
+  # if G is missing then it should be estimated from genotype  
+  if (missing(G)) {
+    G <- gensim.matrix(geno, procedure=procedure, subjects=subjects, markers=markers, ...) 
+  } else {
+    if (procedure == "LM" & !is.null(G)) warning("For 'LM' procedure, gen. sim. matrix G is not used")
+    if (procedure == "LMM" & !is.matrix(G)) stop("For 'LMM' procedure, G should be matrix")
+    if (procedure == "LMM-L1O" & !is.list(G)) stop("For 'LMM-L1O' procedure, G should be a list of matrices")
+  }  
   
-  nind <- length(nonNA) # number of individuals
-  output <- data.frame(chr=geno$markers$chr, pos=geno$markers$pos, lod=rep(0, nrow(geno$markers)), row.names=geno$markers$marker)
-  
-  for (c in geno$chromosomes$chr) {
-    if (is.list(A)) A.chr <- A[[c]] else A.chr <- A
-    
-    # if A.chr is given, transform variables
-    if (!is.null(A.chr)) ynew <- A.chr %*% pheno[nonNA] else ynew <- pheno[nonNA]
-    if (!is.null(A.chr)) covarnew <- A.chr %*% cbind(Intercept,covar)[nonNA,] else covarnew <- cbind(Intercept,covar)[nonNA,]
-    
-    # null model
-    rss0 <- sum(lsfit(y=ynew,x=covarnew,intercept=FALSE)$residuals^2)
-    
-    for (i in which(geno$markers$chr == c)){
-      if (!is.null(A.chr)) xnew <- A.chr %*% cbind(geno$probs[nonNA,,i],covar[nonNA,]) else xnew <- cbind(geno$probs[nonNA,,i], covar[nonNA,])
-      rss1 <- sum(lsfit(y=ynew,x=xnew,intercept=FALSE)$residuals^2)
-      output$lod[i] <- nind/2 * (log10(rss0) - log10(rss1))
-    } 
-  }
-  
+  # prepare output
+  output <- data.frame(chr=geno$markers$chr, 
+                       pos=geno$markers$pos, 
+                       lod=matrix(0, nrow=nrow(geno$markers), ncol = length(pheno.cols)), 
+                       row.names=geno$markers$marker)[markers,]
   class(output) <- c("scanone", "data.frame")
+  
+  for (i in pheno.cols) {
+    
+    y <- pheno[,i]
+    selected <- intersect(subjects, which(complete.cases(cbind(y,covar))))  
+    n.selected <- length(selected) # number of individuals
+    
+    # linear model
+    if (procedure == "LM") A <- NULL
+    # linear mixed model
+    if (procedure == "LMM")
+      A <- variance.decomposition(y[selected], covar[selected,], G[selected,selected],...)$A
+    # linear mixed model, leave one out
+    if (procedure == "LMM-L1O") {
+      A <- list()
+      for (c in geno$chromosomes$chr) {
+        A[[c]] <- variance.decomposition(y[selected], covar[selected,], G[[c]][selected,selected],...)$A
+      }
+    } 
+    
+    # LOD caclulations are performed per chromosome
+    for (c in geno$chromosomes$chr) {
+      
+      # found appropriate A.chr matrix
+      if (procedure == "LMM-L1O") A.chr <- A[[c]] else A.chr <- A
+      
+      # unless LM procedure, rotate y and covar
+      if (procedure != "LM") {
+        y.rotated <- A.chr %*% y[selected] 
+        covar.rotated <- A.chr %*% cbind(Intercept,covar)[selected,]
+      } else {
+        y.rotated <- y[selected] 
+        covar.rotated <- cbind(Intercept,covar)[selected,]
+      }
+      
+      # null model
+      rss0 <- sum(lsfit(y=y.rotated, x=covar.rotated, intercept=FALSE)$residuals^2)
+      
+      for (j in intersect(which(geno$markers$chr == c),markers)){
+        if (procedure != "LM") 
+          x.rotated <- A.chr %*% cbind(geno$probs[selected,,j],covar[selected,]) 
+        else 
+          x.rotated <- cbind(geno$probs[selected,,j], covar[selected,])
+        
+        rss1 <- sum(lsfit(y=y.rotated, x=x.rotated, intercept=FALSE)$residuals^2)
+        output[j,i+2] <- n.selected/2 * (log10(rss0) - log10(rss1))
+      } 
+    }
+  }
+    
   return(output) 
   
 }
