@@ -54,14 +54,16 @@ scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM",
   output <- data.frame(chr=geno$markers$chr, 
                        pos=geno$markers$pos, 
                        lod=matrix(0, nrow=nrow(geno$markers), ncol = length(pheno.cols)), 
-                       row.names=geno$markers$marker)[markers,]
+                       row.names=geno$markers$marker)
   class(output) <- c("scanone", "data.frame")
   
   for (i in pheno.cols) {
     
     y <- pheno[,i]
+    index.i = which(pheno.cols==i)[1]
     selected <- intersect(subjects, which(complete.cases(cbind(y,covar))))  
     n.selected <- length(selected) # number of individuals
+
     
     # linear model
     if (procedure == "LM") A <- NULL
@@ -101,11 +103,11 @@ scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM",
           x.rotated <- cbind(geno$probs[selected,,j], covar[selected,])
         
         rss1 <- sum(lsfit(y=y.rotated, x=x.rotated, intercept=FALSE)$residuals^2)
-        output[j,i+2] <- n.selected/2 * (log10(rss0) - log10(rss1))
+        output[j,index.i+2] <- n.selected/2 * (log10(rss0) - log10(rss1))
       } 
     }
   }
     
-  return(output) 
+  return(output[markers,]) 
   
 }

@@ -4,7 +4,8 @@
 \usage{
 scan1(geno, pheno, pheno.cols = 1, covar = NULL, procedure = c("LM",
   "LMM", "LMM-L1O"), G, subjects = seq(geno$subjects),
-  markers = seq(NROW(geno$markers)), Intercept = rep(1, NROW(pheno)), ...)
+  markers = seq(NROW(geno$markers)), Intercept = rep(1,
+  length(geno$subjects)), ...)
 }
 \arguments{
   \item{cross}{"\code{cross}" object}

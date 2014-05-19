@@ -18,7 +18,7 @@
 #' cross$pheno <- sim.cross.pheno(0.5, cross)
 #' heritability(cross)
 
-variance.decomposition <- function(y, covar, G, package = c("regress", "QTLRel")) {
+variance.decomposition <- function(y, covar, G, package = c("regress", "QTLRel"), ...) {
   package = match.arg(package)
   
   if (package=="regress") {

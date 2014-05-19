@@ -3,7 +3,6 @@
 #' 
 #' @param geno \code{genotype.probs} object or \code{cross} object
 #' @param method how to calculate similarity matrix ('allele-2f-additive', 'allele-multif-additive')    
-#' @exclude.chrs
 #'
 #' @return square matrix (\code{nind} rows, \code{nind} columns)
 #' 

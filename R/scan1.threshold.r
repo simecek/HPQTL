@@ -28,63 +28,94 @@
 #' # scan1.threshold(cross, procedure = "scanOne")
 #' # scan1.threshold(cross, procedure = "scanOne-per-chr")
 
-scan1.threshold <- function(pheno, geno, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G=NULL, n.perm=100, alpha=0.05, ...) {
+scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G, 
+                            n.perm=100, alpha=0.05, 
+                            subjects=seq(geno$subjects), markers=seq(NROW(geno$markers)), ...) {
   
   procedure <- match.arg(procedure)
-  nonNA <- which(!is.na(pheno))
+  trhold <- c()
   
-  if (procedure == "LM") {
-    
-    maxlods <- replicate(n.perm, max(scan1(pheno, geno, covar, procedure="LM", NULL, shuffle=TRUE)$lod))
-    trhold <- quantile(maxlods, 1 - alpha)
-  }
-    
-  if (procedure == "LMM") {
-    
-    if (is.null(G)) G <- gensim.matrix(geno, ...)
-    vd <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[nonNA,nonNA],...)
-    
-    Intercept <- rep(1, length(nonNA))
-    Yperm <- mvnpermute(pheno[nonNA], cbind(Intercept, covar[nonNA,]), vd$V, n.perm)    
-    Yperm.rotated <- vd$A %*% Yperm
-    if (!is.null(covar)) covar.rotated <- vd$A %*% covar[nonNA,] else covar.rotated <- NULL
-    Intercept.rotated = vd$A %*% rep(1, length(nonNA))
-    maxlods <- rep(0, n.perm)
-    
-    for (i in seq(n.perm))
-      maxlods[i] <- max(scan1(Yperm.rotated[,i], geno, covar.rotated, procedure="LM", NULL, Intercept = Intercept.rotated)$lod)
-     
-    trhold <- quantile(maxlods, 1 - alpha)
+  # if geno is not 'genotype.probs', export genotype
+  if (!('genotype.probs' %in% class(geno))) {
+    # if phenotype is missing, try to extract it
+    if (missing(pheno) & "pheno" %in% names(geno))
+      pheno <- geno$pheno
+    geno <- extract.geno(geno)
   }
   
-  if (procedure == "LMM-L1O") {
+  # if G is missing then it should be estimated from genotype  
+  if (missing(G)) {
+    G <- gensim.matrix(geno, procedure=procedure, subjects=subjects, markers=markers, ...) 
+  } else {
+    if (procedure == "LM" & !is.null(G)) warning("For 'LM' procedure, gen. sim. matrix G is not used")
+    if (procedure == "LMM" & !is.matrix(G)) stop("For 'LMM' procedure, G should be matrix")
+    if (procedure == "LMM-L1O" & !is.list(G)) stop("For 'LMM-L1O' procedure, G should be a list of matrices")
+  }
+  
+  for (i in pheno.cols) {
+    
+    y <- pheno[,i]
+    selected <- intersect(subjects, which(complete.cases(cbind(y,covar))))
+    
+    if (procedure == "LM") {
+      maxlods <- rep(0, n.perm)
+      for (j in seq(n.perm)) {
+        pheno[selected, i] <- sample(y[selected])
+        maxlods[j] <- max(scan1(geno, pheno, pheno.col=i, covar, procedure="LM", 
+                                G=NULL, subjects=selected, markers=markers)$lod)
+      }  
+      trhold <- c(trhold, quantile(maxlods, 1 - alpha))
+    }
       
-    if (is.null(geno$chromosomes) | is.null(geno$markers$chr) | is.null(geno$markers$pos))
-      stop("For LMM-L1O procedure, markers MUST be mapped to chromosomes.")
-    if (is.null(G)) {
-      warning("Genetic similarity matrix G should be specified, use 'gensim.matrix' function.")
-      G <- list()
-      for (c in geno$chromosomes$chr)
-        G[[c]] <- gensim.matrix(geno, skip.chr=c, ...)
+    if (procedure == "LMM") {
+      
+      vd <- variance.decomposition(y[selected], covar[selected,], G[selected,selected],...)
+      
+      Intercept = rep(1, length(selected))
+      Yperm <- mvnpermute(y[selected], cbind(Intercept, covar[selected,]), vd$V, n.perm)    
+      Yperm.rotated <- vd$A %*% Yperm
+      if (!is.null(covar)) covar.rotated <- vd$A %*% covar[selected,] else covar.rotated <- NULL
+      Intercept.rotated = vd$A %*% Intercept
+      for (j in markers)
+        geno$probs[selected,,j] <- vd$A %*% geno$probs[selected,,j]
+      
+      maxlods <- rep(0, n.perm)      
+      for (j in seq(n.perm)) {
+        pheno[selected,i] = Yperm.rotated[,j]
+        maxlods[j] <- max(scan1(geno, pheno, pheno.col=i, covar=covar.rotated, procedure="LM", 
+                                G=NULL, Intercept = Intercept.rotated, markers = markers, subjects=selected)$lod)
+      }
+      
+      trhold <- c(trhold, quantile(maxlods, 1 - alpha))
     }
     
-    maxlods <- matrix(nrow = NROW(geno$chromosomes), ncol = n.perm)
-
-    for (c in geno$chromosomes$chr) {
-        vd <- variance.decomposition(pheno[nonNA], covar[nonNA,], G[[c]][nonNA,nonNA],...)
+    if (procedure == "LMM-L1O") {
         
-        Y.perm <- mvnpermute(pheno[nonNA], cbind(Intercept, covar[nonNA,]), vd$V, n.perm)
-        Yperm.rotated <- vd$A %*% Yperm
-        if (!is.null(covar)) covar.rotated <- vd$A %*% covar[nonNA,] else covar.rotated <- NULL
-        Intercept.rotated = vd$A %*% rep(1, length(nonNA))
-        
-        for (i in seq(n.perm))
-          maxlods[which(chrs==c),i] <- max(scan1(Yperm.rotated[,i], geno[,,geno$markers$chr==c], covar.rotated, procedure="LM", NULL, Intercept = Intercept.rotated)$lod)
-    }
-
-    trhold <- quantile(apply(maxlods, 2, max), 1-alpha)
-  }  
+      maxlods <- matrix(nrow = NROW(geno$chromosomes), ncol = n.perm)
   
+      for (c in geno$chromosomes$chr) {
+          vd <- variance.decomposition(y[selected], covar[selected,], G[[c]][selected,selected], ...)
+          
+          Intercept = rep(1, length(selected))
+          Yperm <- mvnpermute(y[selected], cbind(Intercept, covar[selected,]), vd$V, n.perm)
+          Yperm.rotated <- vd$A %*% Yperm
+          if (!is.null(covar)) covar.rotated <- vd$A %*% covar[selected,] else covar.rotated <- NULL
+          Intercept.rotated = vd$A %*% Intercept
+          cmarkers = intersect(markers, which(geno$markers$chr==c))
+          for (j in cmarkers)
+            geno$probs[selected,,j] <- vd$A %*% geno$probs[selected,,j]
+          
+          for (j in seq(n.perm)) {
+            pheno[selected,i] = Yperm.rotated[,j]
+            maxlods[which(geno$chromosome$chr==c),j] <- max(scan1(geno, pheno, pheno.col=i,  covar=covar.rotated, 
+                                                                  procedure="LM", G=NULL, Intercept = Intercept.rotated, 
+                                                                  subjects=selected, markers=cmarkers)$lod)
+          }  
+      }
+  
+      trhold <- c(trhold,quantile(apply(maxlods, 2, max), 1-alpha))
+    }  
+  }  
    
   return(as.numeric(trhold))
  

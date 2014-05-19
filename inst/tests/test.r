@@ -59,3 +59,15 @@ test_that("fake.f2",{
   f2.hpqtl.lmm_l1o <- scan1(fake.f2, procedure="LMM-L1O")
   expect_false(all(f2.hpqtl.lmm$lod == f2.hpqtl.lmm_l1o$lod))
 })
+
+context('Permutation thresholds')
+
+test_that("fake.f2",{
+  
+  data(fake.f2, package="qtl")
+  fake.f2 <- calc.genoprob(fake.f2)
+  
+  trhold.lm <- scan1.threshold(fake.f2, procedure="LM")
+  trhold.lmm <- scan1.threshold(fake.f2, procedure="LMM")
+  trhold.lmm_l1o <- scan1.threshold(fake.f2, procedure="LMM-L1O")
+})
