@@ -45,11 +45,6 @@ data; for example, you could estimate the null distribution
 of some test statistic while observing the (known)
 covariance of the data.
 }
-\examples{
-cross <- sim.cross.geno(250, nmar=10)
-cross$pheno <- sim.cross.pheno(0.5, cross)
-heritability(cross)
-}
 \author{
 Mark Abney
 }

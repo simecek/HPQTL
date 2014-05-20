@@ -1,8 +1,11 @@
 #' Genetic Similarity Matrix
 #' 
-#' 
-#' @param geno \code{genotype.probs} object or \code{cross} object
-#' @param method how to calculate similarity matrix ('allele-2f-additive', 'allele-multif-additive')    
+#'   
+#' @param geno genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)
+#' @param method how to calculate similarity matrix
+#' @param procedure procedure of scan1 the G is calculated for
+#' @param subjects subseting of subjects
+#' @param markers subseting of markers   
 #'
 #' @return square matrix (\code{nind} rows, \code{nind} columns)
 #' 
@@ -11,10 +14,12 @@
 #' @export
 #' 
 #' @examples
-#' cross <- sim.cross.geno(250, nmar=10)
-#' geno <- extract.geno(cross)
-#' gensim.matrix(geno)
-#' gensim.matrix(geno, method = "allele-multif-additive")
+#' data(fake.f2, package="qtl")
+#' fake.f2 <- calc.genoprob(fake.f2)
+#' 
+#' geno <- extract.geno(fake.f2)
+#' G <- gensim.matrix(geno)
+#' Glist <- gensim.matrix(geno, procedure="LMM-L1O")
 
 gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allele-multif-additive', 'allele-multif-cosine'),
                           procedure = c("LMM", "LMM-L1O", "LM"), subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), ...) {

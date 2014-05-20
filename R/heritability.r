@@ -1,20 +1,17 @@
 #' Estimate Heritability
 #' 
-#' @param cross "\code{cross}" object
+#' @param geno genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)
+#' @param pheno data frame with phenotypes
 #' @param pheno.cols selection of phenotype's column(s)
+#' @param covar (additive) covariates
+#' @param G genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
 #' @param se if se=TRUE standard error is estimates
-#' @param ... parameters passed to \code{genrel.matrix}
-#'
+#' @param ... parameters passed to \code{gensim.matrix}
 #' @return numeric
 #' 
 #' @keywords manip
 #'
 #' @export
-#' 
-#' @examples
-#' cross <- sim.cross.geno(250, nmar=10)
-#' cross$pheno <- sim.cross.pheno(0.5, cross)
-#' heritability(cross, se=TRUE)
 
 heritability <- function(geno, pheno, pheno.cols=1, covar=NULL, se=FALSE, G = NULL, ...) {
   

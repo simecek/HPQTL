@@ -13,8 +13,6 @@ Three methods have been implemented
 * linear mixed model (LMM)
 * linear mixed model with specific genetic similarity matrix for each chromosome (LMM-L1O)
 
-![Under construction](http://www.omgwiki.org/model-interchange/lib/exe/fetch.php?cache=cache&w=350&h=317&media=under-construction.gif) Currently under construction. Some examples / manual pages do not match the code.
-
 ## Example
 
 ```S
@@ -30,18 +28,18 @@ G <- gensim.matrix(geno)
 
 # mapping with linear model
 qtl::scanone(fake.f2, method = "hk")
-(fit.lm <- scan1(fake.f2$pheno[,1], geno=geno))
+(fit.lm <- scan1(geno=geno, fake.f2$pheno))
 
 # mapping with linear mixed model
-fit.lmm <- scan1(fake.f2$pheno[,1], geno=geno, procedure = "LMM", G=G)
+fit.lmm <- scan1(geno=geno, fake.f2$pheno, procedure = "LMM", G=G)
 
 # mapping with linear mixed model - leave the scanned chromosome out
-fit.lmm1 <- scan1(fake.f2$pheno[,1], geno=geno, procedure = "LMM-L1O")
+fit.lmm_l1o <- scan1(geno=geno, fake.f2$pheno, procedure = "LMM-L1O")
 
 # LOD plots
-plot(fit.lm, col="black")
+plot(fit.lm, col="black", incl.markers=FALSE)
 plot(fit.lmm, add=TRUE, col="red")
-plot(fit.lmm1, add=TRUE, col="blue")
+plot(fit.lmm_l1o, add=TRUE, col="blue")
 legend("topleft", c("LM", "LMM", "LMM-L1O"), lty=1, col=c("black", "red", "blue"))
 
 ```

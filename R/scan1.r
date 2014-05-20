@@ -1,16 +1,18 @@
 #' Genome Scan With a Single QTL Model
 #' 
-#' @param cross "\code{cross}" object
+#' @param geno genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)
+#' @param pheno data frame with phenotypes
 #' @param pheno.cols selection of phenotype's column(s)
 #' @param covar (additive) covariates
 #' @param procedure procedure to do the inference, see Details
-#' @param V genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
-#' @param ... parameters passed to \code{genrel.matrix}
+#' @param G genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
+#' @param subjects subseting of subjects
+#' @param markers subseting of markers
+#' @param Intercept option to pass rotated intercept for LMM model
+#' @param ... parameters passed to \code{gensim.matrix}
 #' 
-#' @details Currently, three procedures fully implemented: \code{procedure = "qtl"} calls \code{scanone} 
-#' function from \code{qtl} package, \code{procedure = "QTLRel"} calls \code{scanOne} function from \code{QTLRel} package,
-#' \code{procedure = "QTLRel-pre-chr"} calls \code{scanOne} for each chromosome separately and genetic relationship matrix
-#' is estimated with this chromosome excluded.
+#' @details Currently, three procedures are implemented: linear model (LM), linear mixed model (LMM)
+#' and linear mixed model - leave one chromosome out (LMM-L1O).
 #' 
 #' @return \code{scanone} object
 #' 
@@ -19,13 +21,12 @@
 #' @export
 #' 
 #' @examples
-#' cross <- sim.cross.geno(250, nmar=10)
-#' cross$pheno <- sim.cross.pheno(c(0.01, 0.5, 0.75), cross)
-#' plot(scan1(cross, pheno.cols=1:3), lodcol=1:3)
-#' plot(scan1(cross, pheno.cols=1:3, procedure="scanOne"), lodcol=1:3)
+#' data(fake.f2, package="qtl")
+#' fake.f2 <- calc.genoprob(fake.f2)
 #' 
-#' # slow - do not run
-#' # plot(scan1(cross, pheno.cols=1:3, procedure="scanOne-per-chr"), lodcol=1:3)
+#' plot(scan1(fake.f2, procedure="LM"), incl.markers=FALSE)
+#' plot(scan1(fake.f2, procedure="LMM"), incl.markers=FALSE)
+#' plot(scan1(fake.f2, procedure="LMM-L1O"), incl.markers=FALSE)
 
 scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G, 
                   subjects=seq(geno$subjects), markers=seq(NROW(geno$markers)), 

@@ -24,8 +24,9 @@ Extract genotype prob. array from "\code{qtl::cross}"
 object.
 }
 \examples{
-cross <- sim.cross.geno(250, nmar=10)
-extract.geno(cross)
+data(fake.f2, package="qtl")
+fake.f2 <- calc.genoprob(fake.f2)
+geno <- extract.geno(fake.f2)
 }
 \keyword{manip}
 

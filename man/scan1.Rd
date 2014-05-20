@@ -8,7 +8,10 @@ scan1(geno, pheno, pheno.cols = 1, covar = NULL, procedure = c("LM",
   length(geno$subjects)), ...)
 }
 \arguments{
-  \item{cross}{"\code{cross}" object}
+  \item{geno}{genotype probabilities
+  ("\code{genotype.probs}" or "\code{cross}" object)}
+
+  \item{pheno}{data frame with phenotypes}
 
   \item{pheno.cols}{selection of phenotype's column(s)}
 
@@ -17,10 +20,17 @@ scan1(geno, pheno, pheno.cols = 1, covar = NULL, procedure = c("LM",
   \item{procedure}{procedure to do the inference, see
   Details}
 
-  \item{V}{genetic similarity matrix or a list of genetic
+  \item{G}{genetic similarity matrix or a list of genetic
   similarity matrices or \code{NULL}}
 
-  \item{...}{parameters passed to \code{genrel.matrix}}
+  \item{subjects}{subseting of subjects}
+
+  \item{markers}{subseting of markers}
+
+  \item{Intercept}{option to pass rotated intercept for LMM
+  model}
+
+  \item{...}{parameters passed to \code{gensim.matrix}}
 }
 \value{
 \code{scanone} object
@@ -29,22 +39,17 @@ scan1(geno, pheno, pheno.cols = 1, covar = NULL, procedure = c("LM",
 Genome Scan With a Single QTL Model
 }
 \details{
-Currently, three procedures fully implemented:
-\code{procedure = "qtl"} calls \code{scanone} function from
-\code{qtl} package, \code{procedure = "QTLRel"} calls
-\code{scanOne} function from \code{QTLRel} package,
-\code{procedure = "QTLRel-pre-chr"} calls \code{scanOne}
-for each chromosome separately and genetic relationship
-matrix is estimated with this chromosome excluded.
+Currently, three procedures are implemented: linear model
+(LM), linear mixed model (LMM) and linear mixed model -
+leave one chromosome out (LMM-L1O).
 }
 \examples{
-cross <- sim.cross.geno(250, nmar=10)
-cross$pheno <- sim.cross.pheno(c(0.01, 0.5, 0.75), cross)
-plot(scan1(cross, pheno.cols=1:3), lodcol=1:3)
-plot(scan1(cross, pheno.cols=1:3, procedure="scanOne"), lodcol=1:3)
+data(fake.f2, package="qtl")
+fake.f2 <- calc.genoprob(fake.f2)
 
-# slow - do not run
-# plot(scan1(cross, pheno.cols=1:3, procedure="scanOne-per-chr"), lodcol=1:3)
+plot(scan1(fake.f2, procedure="LM"), incl.markers=FALSE)
+plot(scan1(fake.f2, procedure="LMM"), incl.markers=FALSE)
+plot(scan1(fake.f2, procedure="LMM-L1O"), incl.markers=FALSE)
 }
 \keyword{manip}
 

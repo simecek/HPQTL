@@ -1,8 +1,5 @@
-export(add.qtl)
 export(extract.geno)
 export(gensim.matrix)
 export(heritability)
 export(scan1)
 export(scan1.threshold)
-export(sim.cross.geno)
-export(sim.cross.pheno)

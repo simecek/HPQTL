@@ -1,16 +1,19 @@
 #' Significance Threshold of Genome Scan
 #'  
-#' @param cross "\code{cross}" object
+#' @param geno genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)
+#' @param pheno data frame with phenotypes
 #' @param pheno.cols selection of phenotype's column(s)
+#' @param covar (additive) covariates
 #' @param procedure procedure to do the inference, see Details
+#' @param G genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
+#' @param subjects subseting of subjects
+#' @param markers subseting of markers
 #' @param n.perm number of permutations
 #' @param alpha level of significance 
 #' @param ... parameters passed to \code{genrel.matrix}
 #'
-#' @details Currently, three procedures fully implemented: \code{procedure = "qtl"} calls \code{scanone} 
-#' function from \code{qtl} package, \code{procedure = "QTLRel"} calls \code{scanOne} function from \code{QTLRel} package,
-#' \code{procedure = "QTLRel-pre-chr"} calls \code{scanOne} for each chromosome separately and genetic relationship matrix
-#' is estimated with this chromosome excluded.
+#' @details Currently, three procedures are implemented: linear model (LM), linear mixed model (LMM)
+#' and linear mixed model - leave one chromosome out (LMM-L1O).
 #'
 #' @return numeric
 #' 
@@ -19,14 +22,13 @@
 #' @export
 #' 
 #' @examples
-#' cross <- sim.cross.geno(250, nmar=10)
-#' cross$pheno <- sim.cross.pheno(0.5, cross)
-#' scan1.threshold(cross)
+#' data(fake.f2, package="qtl")
+#' fake.f2 <- calc.genoprob(fake.f2)
 #' 
-#' # slow - do not run
-#' # scan1.threshold(cross, n.perm=1000, alpha=0.01)
-#' # scan1.threshold(cross, procedure = "scanOne")
-#' # scan1.threshold(cross, procedure = "scanOne-per-chr")
+#' # warning, n.perm=10 is too low for practical purposes (but fast)
+#' scan1.threshold(fake.f2, procedure="LM", n.perm=10)
+#' scan1.threshold(fake.f2, procedure="LMM", n.perm=10)
+#' scan1.threshold(fake.f2, procedure="LMM-L1O", n.perm=10)
 
 scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G, 
                             n.perm=100, alpha=0.05, 

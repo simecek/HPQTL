@@ -2,7 +2,7 @@
 \alias{variance.decomposition}
 \title{Decompose variance into genetic part and a random noise}
 \usage{
-variance.decomposition(y, covar, G, package = c("regress", "QTLRel"))
+variance.decomposition(y, covar, G, package = c("regress", "QTLRel"), ...)
 }
 \arguments{
   \item{y}{a vector with phenotype}
@@ -11,7 +11,7 @@ variance.decomposition(y, covar, G, package = c("regress", "QTLRel"))
 
   \item{G}{genetic similarity matrix}
 
-  \item{package}{/ method to do variant component
+  \item{package}{package to do variant component
   calculations}
 }
 \value{
@@ -22,12 +22,15 @@ Decompose variance into genetic part and a random noise
 }
 \details{
 Currently, \code{regress} function is much faster than
-\code{QTLRel::estVC} but it prints
+\code{QTLRel::estVC}.
 }
 \examples{
-cross <- sim.cross.geno(250, nmar=10)
-cross$pheno <- sim.cross.pheno(0.5, cross)
-heritability(cross)
+data(fake.f2, package="qtl")
+fake.f2 <- calc.genoprob(fake.f2)
+
+geno <- extract.geno(fake.f2)
+G <- gensim.matrix(geno)
+HPQTL:::variance.decomposition(fake.f2$pheno[,1], NULL, G)
 }
 \keyword{manip}
 

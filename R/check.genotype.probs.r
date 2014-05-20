@@ -7,9 +7,11 @@
 #' @keywords manip
 #'
 #' @examples
-#' cross <- sim.cross.geno(250, nmar=10)
-#' geno <- extract.geno(cross)
-#' check.genotype.probs(geno)
+#' data(fake.f2, package="qtl")
+#' fake.f2 <- calc.genoprob(fake.f2)
+#' 
+#' geno <- extract.geno(fake.f2)
+#' HPQTL:::check.genotype.probs
 
 check.genotype.probs <- function(geno, lmm.l1o=FALSE) {
   stopifnot("genotype.probs" %in% class(geno)) # geno is genotype.probs" class

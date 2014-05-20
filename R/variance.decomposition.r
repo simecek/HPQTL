@@ -3,20 +3,21 @@
 #' @param y a vector with phenotype
 #' @param covar a matrix with covariates
 #' @param G genetic similarity matrix
-#' @param package / method to do variant component calculations
+#' @param package package to do variant component calculations
 #' 
-#' @details Currently, \code{regress} function is much faster than \code{QTLRel::estVC}
-#' but it prints 
-#' 
-#' 
+#' @details Currently, \code{regress} function is much faster than \code{QTLRel::estVC}.
+#'  
 #' @return 4-elements list
 #' 
 #' @keywords manip
 #'
 #' @examples
-#' cross <- sim.cross.geno(250, nmar=10)
-#' cross$pheno <- sim.cross.pheno(0.5, cross)
-#' heritability(cross)
+#' data(fake.f2, package="qtl")
+#' fake.f2 <- calc.genoprob(fake.f2)
+#' 
+#' geno <- extract.geno(fake.f2)
+#' G <- gensim.matrix(geno)
+#' HPQTL:::variance.decomposition(fake.f2$pheno[,1], NULL, G)
 
 variance.decomposition <- function(y, covar, G, package = c("regress", "QTLRel"), ...) {
   package = match.arg(package)

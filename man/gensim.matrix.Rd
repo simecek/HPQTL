@@ -8,11 +8,17 @@ gensim.matrix(geno, method = c("default", "allele-2f-additive",
   markers = seq(NROW(geno$markers)), ...)
 }
 \arguments{
-  \item{geno}{\code{genotype.probs} object or \code{cross}
-  object}
+  \item{geno}{genotype probabilities
+  ("\code{genotype.probs}" or "\code{cross}" object)}
 
-  \item{method}{how to calculate similarity matrix
-  ('allele-2f-additive', 'allele-multif-additive')}
+  \item{method}{how to calculate similarity matrix}
+
+  \item{procedure}{procedure of scan1 the G is calculated
+  for}
+
+  \item{subjects}{subseting of subjects}
+
+  \item{markers}{subseting of markers}
 }
 \value{
 square matrix (\code{nind} rows, \code{nind} columns)
@@ -21,10 +27,12 @@ square matrix (\code{nind} rows, \code{nind} columns)
 Genetic Similarity Matrix
 }
 \examples{
-cross <- sim.cross.geno(250, nmar=10)
-geno <- extract.geno(cross)
-gensim.matrix(geno)
-gensim.matrix(geno, method = "allele-multif-additive")
+data(fake.f2, package="qtl")
+fake.f2 <- calc.genoprob(fake.f2)
+
+geno <- extract.geno(fake.f2)
+G <- gensim.matrix(geno)
+Glist <- gensim.matrix(geno, procedure="LMM-L1O")
 }
 \keyword{manip}
 
