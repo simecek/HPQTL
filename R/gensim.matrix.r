@@ -83,13 +83,13 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
   
   if (method == 'allele-multif-cosine') {
     
-    K <- matrix(0, length(subjects), length(subjects))
-    diag(K) <- 1
+    mprobs = geno$probs[subjects,,markers]
+    dp = dim(mprobs)
+    dim(mprobs) = c(dp[1], dp[2]*dp[3])
     
-    for (i in subjects)
-      for (j in subjects)
-        if (i<j)
-          K[i,j] <- K[j,i] <- sum(geno$probs[i,,markers] * geno$probs[j,,markers]) / sqrt( sum(geno$probs[i,,markers]^2) * sum(geno$probs[j,,markers]^2) )
+    V = mprobs %*% t(mprobs)
+    sds = sqrt(diag(V))
+    K = diag(1/sds) %*% V %*% diag(1/sds)
   }
   
   return(K)
