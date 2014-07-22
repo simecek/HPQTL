@@ -10,6 +10,7 @@
 #' @param markers subseting of markers
 #' @param n.perm number of permutations
 #' @param alpha level of significance 
+#' @param keep.lods if TRUE maximum lod values thate have been used for threshold calculation are returned as attribute 'maxlods' 
 #' @param ... parameters passed to \code{genrel.matrix}
 #'
 #' @details Currently, three procedures are implemented: linear model (LM), linear mixed model (LMM)
@@ -31,11 +32,12 @@
 #' scan1.threshold(fake.f2, procedure="LMM-L1O", n.perm=10)
 
 scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G, 
-                            n.perm=100, alpha=0.05, 
-                            subjects=seq(geno$subjects), markers=seq(NROW(geno$markers)), ...) {
+                            n.perm=1000, alpha=0.05, subjects=seq(geno$subjects), markers=seq(NROW(geno$markers)), 
+                            keep.lods = FALSE, ...) {
   
   procedure <- match.arg(procedure)
   trhold <- c()
+  if (keep.lods) lods.to.keep <- NULL
   
   # if geno is not 'genotype.probs', export genotype
   if (!('genotype.probs' %in% class(geno))) {
@@ -67,6 +69,7 @@ scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("
                                 G=NULL, subjects=selected, markers=markers)$lod)
       }  
       trhold <- c(trhold, quantile(maxlods, 1 - alpha))
+      if (keep.lods) lods.to.keep <- cbind(lods.to.keep, maxlods)
     }
       
     if (procedure == "LMM") {
@@ -94,6 +97,7 @@ scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("
       }
       
       trhold <- c(trhold, quantile(maxlods, 1 - alpha))
+      if (keep.lods) lods.to.keep <- cbind(lods.to.keep, maxlods)
     }
     
     if (procedure == "LMM-L1O") {
@@ -126,9 +130,12 @@ scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("
       }
   
       trhold <- c(trhold,quantile(apply(maxlods, 2, max), 1-alpha))
+      if (keep.lods) lods.to.keep <- cbind(lods.to.keep, maxlods)
     }  
   }  
-   
-  return(as.numeric(trhold))
+  
+  trhold <- as.numeric(trhold)
+  if (keep.lods) attr(trhold, "maxlods") <- lods.to.keep
+  return(trhold)
  
 }

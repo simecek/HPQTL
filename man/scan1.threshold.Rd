@@ -4,8 +4,9 @@
 \title{Significance Threshold of Genome Scan}
 \usage{
 scan1.threshold(geno, pheno, pheno.cols = 1, covar = NULL,
-  procedure = c("LM", "LMM", "LMM-L1O"), G, n.perm = 100, alpha = 0.05,
-  subjects = seq(geno$subjects), markers = seq(NROW(geno$markers)), ...)
+  procedure = c("LM", "LMM", "LMM-L1O"), G, n.perm = 1000, alpha = 0.05,
+  subjects = seq(geno$subjects), markers = seq(NROW(geno$markers)),
+  keep.lods = FALSE, ...)
 }
 \arguments{
 \item{geno}{genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)}
@@ -27,6 +28,8 @@ scan1.threshold(geno, pheno, pheno.cols = 1, covar = NULL,
 \item{n.perm}{number of permutations}
 
 \item{alpha}{level of significance}
+
+\item{keep.lods}{if TRUE maximum lod values thate have been used for threshold calculation are returned as attribute 'maxlods'}
 
 \item{...}{parameters passed to \code{genrel.matrix}}
 }
