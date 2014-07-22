@@ -3,10 +3,12 @@
 \alias{extract.geno}
 \title{Import qtl / DOQTL cross}
 \usage{
-extract.geno(cross)
+extract.geno(cross, check.output = TRUE)
 }
 \arguments{
 \item{cross}{"\code{cross}" object or DO qtl}
+
+\item{check.output}{check consistency of results}
 }
 \value{
 \code{genotype.probs} object is a list of three components

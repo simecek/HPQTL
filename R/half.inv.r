@@ -4,7 +4,7 @@
 #'
 #' @keywords manip
 #' 
-#' @value matrix
+#' @return matrix
 #'
 #' @author copied from QTLRel
 #'
