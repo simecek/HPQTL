@@ -33,6 +33,12 @@ scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM",
                   Intercept=rep(1,length(geno$subjects)), ...) {
  
   procedure <- match.arg(procedure)
+
+  # covar should be matrix, not data.frame
+  if (!is.null(covar) & class(covar)!="matrix") {
+    warning(paste("Class of 'covar' should be matrix, not", class(covar)))
+    covar = as.matrix(covar)
+  }
   
   # if geno is not 'genotype.probs', export genotype
   if (!('genotype.probs' %in% class(geno))) {

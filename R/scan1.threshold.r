@@ -73,11 +73,16 @@ scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("
       
       vd <- variance.decomposition(y[selected], covar[selected,], G[selected,selected],...)
       
-      Intercept = rep(1, length(selected))
-      Yperm <- mvnpermute(y[selected], cbind(Intercept, covar[selected,]), vd$V, n.perm)    
+      Intercept = rep(1, length(geno$subjects))
+      Yperm <- mvnpermute(y[selected], cbind(Intercept[selected], covar[selected,]), vd$V, n.perm)    
       Yperm.rotated <- vd$A %*% Yperm
-      if (!is.null(covar)) covar.rotated <- vd$A %*% covar[selected,] else covar.rotated <- NULL
-      Intercept.rotated = vd$A %*% Intercept
+      
+      covar.rotated <- covar
+      if (!is.null(covar)) covar.rotated[selected,] <- vd$A %*% covar[selected,]
+      
+      Intercept.rotated = Intercept
+      Intercept.rotated[selected] = vd$A %*% Intercept[selected]
+      
       for (j in markers)
         geno$probs[selected,,j] <- vd$A %*% geno$probs[selected,,j]
       
@@ -98,11 +103,16 @@ scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("
       for (c in geno$chromosomes$chr) {
           vd <- variance.decomposition(y[selected], covar[selected,], G[[c]][selected,selected], ...)
           
-          Intercept = rep(1, length(selected))
-          Yperm <- mvnpermute(y[selected], cbind(Intercept, covar[selected,]), vd$V, n.perm)
+          Intercept = rep(1, length(geno$subjects))
+          Yperm <- mvnpermute(y[selected], cbind(Intercept[selected], covar[selected,]), vd$V, n.perm)
           Yperm.rotated <- vd$A %*% Yperm
-          if (!is.null(covar)) covar.rotated <- vd$A %*% covar[selected,] else covar.rotated <- NULL
-          Intercept.rotated = vd$A %*% Intercept
+
+          covar.rotated <- covar
+          if (!is.null(covar)) covar.rotated[selected,] <- vd$A %*% covar[selected,]
+          
+          Intercept.rotated = Intercept
+          Intercept.rotated[selected] = vd$A %*% Intercept[selected]
+          
           cmarkers = intersect(markers, which(geno$markers$chr==c))
           for (j in cmarkers)
             geno$probs[selected,,j] <- vd$A %*% geno$probs[selected,,j]
