@@ -3,6 +3,7 @@
 #' @details Extract genotype prob. array from "\code{qtl::cross}" object. 
 #'   
 #' @param cross "\code{cross}" object or DO qtl 
+#' @param check.output check consistency of results
 #'
 #' @return \code{genotype.probs} object is a list of three components 
 #' \itemize{ 
@@ -22,7 +23,7 @@
 #' fake.f2 <- calc.genoprob(fake.f2)
 #' geno <- extract.geno(fake.f2)
 
-extract.geno <- function(cross) {
+extract.geno <- function(cross, check.output = TRUE) {
 
   # currently only cross (qtl package) or DO genotype probs implemented
   stopifnot("cross" %in% class(cross) | "array" %in% class(cross))
@@ -63,6 +64,18 @@ extract.geno <- function(cross) {
                           chr = do.call("c", mapply(rep, x = names(nmar(cross)), each = nmar(cross), SIMPLIFY = FALSE)),
                           pos = do.call("c", lapply(cross$geno, function(x) as.vector(x$map))))
     
+    # if number of call differes
+    if (length(unique(sapply(list.of.probs, ncol)))!=1) {
+      warning("Number of calls differ across chromosomes.")
+      max.calls <- max(sapply(list.of.probs, ncol))
+      for (i in which(sapply(list.of.probs, ncol) < max.calls)) {
+        miss.calls <- max.calls - dim(list.of.probs[[i]])[2] 
+        zeros <- array(rep(0,dim(list.of.probs[[i]])[1] * miss.calls * dim(list.of.probs[[i]])[3]))
+        dim(zeros) <- c(dim(list.of.probs[[i]])[1], miss.calls,  dim(list.of.probs[[i]])[3])
+        list.of.probs[[i]] <- abind(list.of.probs[[i]], zeros, along = 2)
+      }
+    }
+    
     # see help for 'geno' class
     geno <- list(probs = abind(list.of.probs, along=3), 
                  subjects = subjects,    
@@ -101,6 +114,6 @@ extract.geno <- function(cross) {
   }
     
   class(geno) <- c("genotype.probs", "list")
-  check.genotype.probs(geno)
+  if (check.output) check.genotype.probs(geno)
   geno
 }
