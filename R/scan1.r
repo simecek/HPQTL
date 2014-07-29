@@ -58,10 +58,11 @@ scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM",
   }  
   
   # prepare output
-  output <- data.frame(chr=geno$markers$chr, 
+  output <- data.frame(chr=as.character(geno$markers$chr), 
                        pos=geno$markers$pos, 
                        lod=matrix(0, nrow=nrow(geno$markers), ncol = length(pheno.cols)), 
-                       row.names=geno$markers$marker)
+                       row.names=geno$markers$marker,
+                       stringsAsFactors = FALSE)
   class(output) <- c("scanone", "data.frame")
   
   for (i in pheno.cols) {
