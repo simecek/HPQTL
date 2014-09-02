@@ -46,6 +46,8 @@ scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM",
     if (missing(pheno) & "pheno" %in% names(geno))
       pheno <- geno$pheno
     geno <- extract.geno(geno)
+    subjects <- seq(geno$subjects)
+    markers <- seq(NROW(geno$markers))
   }  
   
   # if G is missing then it should be estimated from genotype  

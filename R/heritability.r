@@ -13,10 +13,21 @@
 #'
 #' @export
 
-heritability <- function(geno, pheno, pheno.cols=1, covar=NULL, se=FALSE, G = NULL, ...) {
+heritability <- function(geno, pheno, pheno.cols=1, covar=NULL, se=FALSE, G, ...) {
   
-  # get genetic relationship matrix
-  if (is.null(G)) G <- gensim.matrix(cross, ...)
+  # if geno is not 'genotype.probs', export genotype
+  if (!('genotype.probs' %in% class(geno))) {
+    # if phenotype is missing, try to extract it
+    if (missing(pheno) & "pheno" %in% names(geno))
+      pheno <- geno$pheno
+    geno <- extract.geno(geno)
+  } 
+  
+  # if G is missing then it should be estimated from genotype  
+  if (missing(G)) {
+    G <- gensim.matrix(geno, ...)
+  }
+    
   output <- c()
   if (se) output.se <- c()
   
