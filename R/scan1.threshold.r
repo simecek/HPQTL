@@ -14,7 +14,7 @@
 #' @param ... parameters passed to \code{genrel.matrix}
 #'
 #' @details Currently, three procedures are implemented: linear model (LM), linear mixed model (LMM)
-#' and linear mixed model - leave one chromosome out (LMM-L1O).
+#' and linear mixed model - leave one chromosome out (LOCO).
 #'
 #' @return numeric
 #' 
@@ -29,9 +29,9 @@
 #' # warning, n.perm=10 is too low for practical purposes (but fast)
 #' scan1.threshold(fake.f2, procedure="LM", n.perm=10)
 #' scan1.threshold(fake.f2, procedure="LMM", n.perm=10)
-#' scan1.threshold(fake.f2, procedure="LMM-L1O", n.perm=10)
+#' scan1.threshold(fake.f2, procedure="LOCO", n.perm=10)
 
-scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LMM-L1O"), G, 
+scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LOCO"), G, 
                             n.perm=1000, alpha=0.05, subjects=seq(geno$subjects), markers=seq(NROW(geno$markers)), 
                             keep.lods = FALSE, ...) {
   
@@ -53,7 +53,7 @@ scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("
   } else {
     if (procedure == "LM" & !is.null(G)) warning("For 'LM' procedure, gen. sim. matrix G is not used")
     if (procedure == "LMM" & !is.matrix(G)) stop("For 'LMM' procedure, G should be matrix")
-    if (procedure == "LMM-L1O" & !is.list(G)) stop("For 'LMM-L1O' procedure, G should be a list of matrices")
+    if (procedure == "LOCO" & !is.list(G)) stop("For 'LOCO' procedure, G should be a list of matrices")
   }
   
   for (i in pheno.cols) {
@@ -100,7 +100,7 @@ scan1.threshold <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("
       if (keep.lods) lods.to.keep <- cbind(lods.to.keep, maxlods)
     }
     
-    if (procedure == "LMM-L1O") {
+    if (procedure == "LOCO") {
         
       maxlods <- matrix(nrow = NROW(geno$chromosomes), ncol = n.perm)
   

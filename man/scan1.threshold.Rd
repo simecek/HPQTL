@@ -4,7 +4,7 @@
 \title{Significance Threshold of Genome Scan}
 \usage{
 scan1.threshold(geno, pheno, pheno.cols = 1, covar = NULL,
-  procedure = c("LM", "LMM", "LMM-L1O"), G, n.perm = 1000, alpha = 0.05,
+  procedure = c("LM", "LMM", "LOCO"), G, n.perm = 1000, alpha = 0.05,
   subjects = seq(geno$subjects), markers = seq(NROW(geno$markers)),
   keep.lods = FALSE, ...)
 }
@@ -41,7 +41,7 @@ Significance Threshold of Genome Scan
 }
 \details{
 Currently, three procedures are implemented: linear model (LM), linear mixed model (LMM)
-and linear mixed model - leave one chromosome out (LMM-L1O).
+and linear mixed model - leave one chromosome out (LOCO).
 }
 \examples{
 data(fake.f2, package="qtl")
@@ -50,7 +50,7 @@ fake.f2 <- calc.genoprob(fake.f2)
 # warning, n.perm=10 is too low for practical purposes (but fast)
 scan1.threshold(fake.f2, procedure="LM", n.perm=10)
 scan1.threshold(fake.f2, procedure="LMM", n.perm=10)
-scan1.threshold(fake.f2, procedure="LMM-L1O", n.perm=10)
+scan1.threshold(fake.f2, procedure="LOCO", n.perm=10)
 }
 \keyword{manip}
 

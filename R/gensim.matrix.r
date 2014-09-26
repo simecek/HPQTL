@@ -5,7 +5,8 @@
 #' @param method how to calculate similarity matrix
 #' @param procedure procedure of scan1 the G is calculated for
 #' @param subjects subseting of subjects
-#' @param markers subseting of markers   
+#' @param markers subseting of markers
+#' @param gensim.normalization method to be used for genetic similarity matrix normalization   
 #'
 #' @return square matrix (\code{nind} rows, \code{nind} columns)
 #' 
@@ -19,10 +20,11 @@
 #' 
 #' geno <- extract.geno(fake.f2)
 #' G <- gensim.matrix(geno)
-#' Glist <- gensim.matrix(geno, procedure="LMM-L1O")
+#' Glist <- gensim.matrix(geno, procedure="LOCO")
 
 gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allele-multif-additive', 'allele-multif-cosine'),
-                          procedure = c("LMM", "LMM-L1O", "LM"), subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), ...) {
+                          procedure = c("LMM", "LOCO", "LM"), subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), 
+                          gensim.normalization="sample-variance", ...) {
   
   # match arguments
   method = match.arg(method) 
@@ -43,12 +45,13 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
   # for linear model no genetic similarity matrix is needed
   if (procedure == "LM") return(NULL)
   
-  # for LMM-L1O call it recursively for each cheomosome
-  if (procedure == "LMM-L1O") {
+  # for LOCO call it recursively for each cheomosome
+  if (procedure == "LOCO") {
     Glist <- list()
     for (c in geno$chromosomes$chr)
       Glist[[c]] <- gensim.matrix(geno, method=method, procedure="LMM", subjects=subjects, 
-                                  markers = intersect(markers,which(geno$markers$chr!=c)))
+                                  markers = intersect(markers,which(geno$markers$chr!=c)), 
+                                  gensim.normalization=gensim.normalization)
     return(Glist)
   }
   
@@ -62,10 +65,6 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
     
     for (j in markers) # for each snp get kinship
       K <- K + geno$probs[subjects,,j] %*% score.matrix %*% t(geno$probs[subjects,,j])    
-      
-    # normalization to diag(K) == 1
-    norm.factor <- sqrt(diag(K))
-    K <- diag(1/norm.factor) %*% K %*%  diag(1/norm.factor)
     
   }
   
@@ -74,10 +73,6 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
     K <- matrix(0, length(subjects), length(subjects))
     for (j in markers) # for each snp get kinship
       K <- K + geno$probs[subjects,,j] %*% score.matrix %*% t(geno$probs[subjects,,j])
-      
-    # normalization to diag(K) == 1
-    norm.factor <- sqrt(diag(K))
-    K <- diag(1/norm.factor) %*% K %*%  diag(1/norm.factor)
     
   }
   
@@ -87,10 +82,11 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
     dp = dim(mprobs)
     dim(mprobs) = c(dp[1], dp[2]*dp[3])
     
-    V = mprobs %*% t(mprobs)
-    sds = sqrt(diag(V))
-    K = diag(1/sds) %*% V %*% diag(1/sds)
+    K <- mprobs %*% t(mprobs)
   }
+  
+  # normalize the matrix
+  K <- normalize.matrix(K, method=gensim.normalization)
   
   return(K)
   

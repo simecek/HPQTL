@@ -6,24 +6,26 @@
 half.inv(W, symmetric = TRUE, inverse = TRUE)
 }
 \arguments{
-\item{W}{matrix}
+\item{W}{positive definite matrix}
 }
 \value{
-matrix
+Matrix \code{A} such that \code{t(A)\%*\%A} is the inverse of \code{W}.
 }
 \description{
-Half-inverse matrix operation
+Return square root of an inverse matrix.
+}
+\details{
+Note \code{W} must be strictly positive definite.
+For a matrix with negative eigen values the error is thrown. However, the problem
+might arise for matrices with eigen values close to zero.
 }
 \examples{
-data(fake.f2, package="qtl")
-fake.f2 <- calc.genoprob(fake.f2)
-
-geno <- extract.geno(fake.f2)
-G <- gensim.matrix(geno)
-A <- HPQTL:::half.inv(G)
+W <- matrix(c(1,1/2,1/2,1),2,2)
+A <- HPQTL:::half.inv(W)
+max(abs(t(A)\%*\%A\%*\%W) - diag(2))
 }
 \author{
-copied from QTLRel
+Riyan Cheng, copied from QTLRel
 }
 \keyword{manip}
 

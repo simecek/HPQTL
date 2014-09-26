@@ -1,5 +1,5 @@
 
-context('qtl::scanone(... method="hk") and scan1(..., method="LM") LOD scores equal')
+context('LOD scores equal for HPQTL/scan1/LM and qtl/scanone/hk')
 
 test_that("fake.f2",{
 
@@ -25,7 +25,7 @@ test_that("fake.bc",{
   expect_equal(bc.qtl$lod[bc.qtl$chr!="X"], bc.hpqtl.lm$lod[bc.hpqtl.lm$chr!="X"])
 })
 
-context('qtl::scanOne and scan1(..., method="LMM") LOD scores equal')
+context('LOD scores equal for HPQTL/scan1/LMM and qtlRel/scanOne')
 
 test_that("fake.f2",{
 
@@ -48,7 +48,7 @@ test_that("fake.f2",{
   expect_equal(as.vector(f2.qtlrel), as.vector(f2.hpqtl.lmm$lod))
 })
 
-context('scan1(..., method="LMM-L1O")')
+context('L1O results != LMM results')
 
 test_that("fake.f2",{
   

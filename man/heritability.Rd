@@ -3,8 +3,8 @@
 \alias{heritability}
 \title{Estimate Heritability}
 \usage{
-heritability(geno, pheno, pheno.cols = 1, covar = NULL, se = FALSE,
-  G = NULL, ...)
+heritability(geno, pheno, pheno.cols = 1, covar = NULL, se = FALSE, G,
+  ...)
 }
 \arguments{
 \item{geno}{genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)}

@@ -5,8 +5,9 @@
 \usage{
 gensim.matrix(geno, method = c("default", "allele-2f-additive",
   "allele-multif-additive", "allele-multif-cosine"), procedure = c("LMM",
-  "LMM-L1O", "LM"), subjects = seq(geno$subjects),
-  markers = seq(NROW(geno$markers)), ...)
+  "LOCO", "LM"), subjects = seq(geno$subjects),
+  markers = seq(NROW(geno$markers)),
+  gensim.normalization = "sample-variance", ...)
 }
 \arguments{
 \item{geno}{genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)}
@@ -18,6 +19,8 @@ gensim.matrix(geno, method = c("default", "allele-2f-additive",
 \item{subjects}{subseting of subjects}
 
 \item{markers}{subseting of markers}
+
+\item{gensim.normalization}{method to be used for genetic similarity matrix normalization}
 }
 \value{
 square matrix (\code{nind} rows, \code{nind} columns)
@@ -31,7 +34,7 @@ fake.f2 <- calc.genoprob(fake.f2)
 
 geno <- extract.geno(fake.f2)
 G <- gensim.matrix(geno)
-Glist <- gensim.matrix(geno, procedure="LMM-L1O")
+Glist <- gensim.matrix(geno, procedure="LOCO")
 }
 \keyword{manip}
 

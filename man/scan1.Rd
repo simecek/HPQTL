@@ -4,7 +4,7 @@
 \title{Genome Scan With a Single QTL Model}
 \usage{
 scan1(geno, pheno, pheno.cols = 1, covar = NULL, procedure = c("LM",
-  "LMM", "LMM-L1O"), G, subjects = seq(geno$subjects),
+  "LMM", "LOCO"), G, subjects = seq(geno$subjects),
   markers = seq(NROW(geno$markers)), Intercept = rep(1,
   length(geno$subjects)), ...)
 }
@@ -37,7 +37,7 @@ Genome Scan With a Single QTL Model
 }
 \details{
 Currently, three procedures are implemented: linear model (LM), linear mixed model (LMM)
-and linear mixed model - leave one chromosome out (LMM-L1O).
+and linear mixed model - leave one chromosome out (LOCO).
 }
 \examples{
 data(fake.f2, package="qtl")
@@ -45,7 +45,7 @@ fake.f2 <- calc.genoprob(fake.f2)
 
 plot(scan1(fake.f2, procedure="LM"), incl.markers=FALSE)
 plot(scan1(fake.f2, procedure="LMM"), incl.markers=FALSE)
-plot(scan1(fake.f2, procedure="LMM-L1O"), incl.markers=FALSE)
+plot(scan1(fake.f2, procedure="LOCO"), incl.markers=FALSE)
 }
 \keyword{manip}
 
