@@ -22,30 +22,29 @@
 #' G <- gensim.matrix(geno)
 #' Glist <- gensim.matrix(geno, procedure="LOCO")
 
-gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allele-multif-additive', 'allele-multif-cosine'),
+gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allele-multif-additive', 'allele-2f-weighted', 'allele-multif-cosine'),
                           procedure = c("LMM", "LOCO", "LM"), subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), 
                           gensim.normalization="sample-variance", ...) {
   
   # match arguments
   method = match.arg(method) 
-  
   procedure = match.arg(procedure)
   
   # if not genotype.probs then extract genotype probs
-  if ("cross" %in% class(geno)) geno <- extract.geno(geno)
+  if (!("genotype.probs" %in% class(geno))) geno <- extract.geno(geno)
   check.genotype.probs(geno)
 
   # for default 'method' guess 
   if (method=="default")
     if (length(geno$calls)<=3) 
-      method <- 'allele-2f-additive'
+      method <- 'allele-2f-weighted'
     else 
       method <- 'allele-multif-cosine'
     
   # for linear model no genetic similarity matrix is needed
   if (procedure == "LM") return(NULL)
   
-  # for LOCO call it recursively for each cheomosome
+  # for LOCO call it recursively for each chromosome
   if (procedure == "LOCO") {
     Glist <- list()
     for (c in geno$chromosomes$chr)
@@ -68,6 +67,14 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
     
   }
   
+  if (method == 'allele-2f-weighted') {
+    if (length(geno$calls)<2 | length(geno$calls)>3) stop("Method 'allele-2f-additive' expects 2 founders.")
+    
+    f <- function(A) colSums(t(A) * (1:ncol(A)))
+    Zt <- scale(t(apply(geno$probs,3, f)))
+    K <- t(Zt) %*% Zt   
+  }
+  
   if (method == 'allele-multif-additive') {
     score.matrix <- diag(length(geno$calls))
     K <- matrix(0, length(subjects), length(subjects))
@@ -77,11 +84,9 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
   }
   
   if (method == 'allele-multif-cosine') {
-    
     mprobs = geno$probs[subjects,,markers]
     dp = dim(mprobs)
     dim(mprobs) = c(dp[1], dp[2]*dp[3])
-    
     K <- mprobs %*% t(mprobs)
   }
   
