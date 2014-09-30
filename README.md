@@ -57,6 +57,7 @@ To install the package directly from Github, use `devtools::install_github`:
 
 * [QTLRel](https://github.com/pcarbo/QTLRel)
 * [emma](http://mouse.cs.ucla.edu/emma/)
+* [gemma](http://stephenslab.uchicago.edu/software.html#gemma)
 * [qtl](https://github.com/kbroman/qtl)
 * [qtlcharts](https://github.com/kbroman/qtlcharts)
 
