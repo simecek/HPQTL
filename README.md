@@ -34,13 +34,13 @@ qtl::scanone(fake.f2, method = "hk")
 fit.lmm <- scan1(geno=geno, fake.f2$pheno, procedure = "LMM", G=G)
 
 # mapping with linear mixed model - leave the scanned chromosome out
-fit.lmm_l1o <- scan1(geno=geno, fake.f2$pheno, procedure = "LMM-L1O")
+fit.lmm_loco <- scan1(geno=geno, fake.f2$pheno, procedure = "LOCO")
 
 # LOD plots
 plot(fit.lm, col="black", incl.markers=FALSE)
 plot(fit.lmm, add=TRUE, col="red")
-plot(fit.lmm_l1o, add=TRUE, col="blue")
-legend("topleft", c("LM", "LMM", "LMM-L1O"), lty=1, col=c("black", "red", "blue"))
+plot(fit.lmm_loco, add=TRUE, col="blue")
+legend("topleft", c("LM", "LMM", "LOCO"), lty=1, col=c("black", "red", "blue"))
 
 ```
 
