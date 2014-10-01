@@ -3,21 +3,18 @@
 \alias{heritability}
 \title{Estimate Heritability}
 \usage{
-heritability(geno, pheno, pheno.cols = 1, covar = NULL, se = FALSE, G,
-  ...)
+heritability(y, covar, G, se = FALSE, var.decompose = FALSE, ...)
 }
 \arguments{
-\item{geno}{genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)}
+\item{y}{a vector with phenotype}
 
-\item{pheno}{data frame with phenotypes}
+\item{covar}{a matrix with covariates, Intercept should be included}
 
-\item{pheno.cols}{selection of phenotype's column(s)}
+\item{G}{genetic similarity matrix}
 
-\item{covar}{(additive) covariates}
+\item{se}{if TRUE standard error is estimated}
 
-\item{G}{genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}}
-
-\item{se}{if se=TRUE standard error is estimates}
+\item{var.decompose}{if TRUE total variability is decomposed as into three parts: fixed effects, animal effect and noise}
 
 \item{...}{parameters passed to \code{gensim.matrix}}
 }

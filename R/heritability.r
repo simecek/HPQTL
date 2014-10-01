@@ -1,11 +1,10 @@
 #' Estimate Heritability
 #' 
-#' @param geno genotype probabilities ("\code{genotype.probs}" or "\code{cross}" object)
-#' @param pheno data frame with phenotypes
-#' @param pheno.cols selection of phenotype's column(s)
-#' @param covar (additive) covariates
-#' @param G genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
-#' @param se if se=TRUE standard error is estimates
+#' @param y a vector with phenotype
+#' @param covar a matrix with covariates, Intercept should be included
+#' @param G genetic similarity matrix
+#' @param se if TRUE standard error is estimated
+#' @param var.decompose if TRUE total variability is decomposed as into three parts: fixed effects, animal effect and noise
 #' @param ... parameters passed to \code{gensim.matrix}
 #' @return numeric
 #' 
@@ -13,40 +12,43 @@
 #'
 #' @export
 
-heritability <- function(geno, pheno, pheno.cols=1, covar=NULL, se=FALSE, G, ...) {
+heritability <- function(y, covar, G, se=FALSE, var.decompose = FALSE, ...) {
   
-  # if geno is not 'genotype.probs', export genotype
-  if (!('genotype.probs' %in% class(geno))) {
-    # if phenotype is missing, try to extract it
-    if (missing(pheno) & "pheno" %in% names(geno))
-      pheno <- geno$pheno
-    geno <- extract.geno(geno)
-  } 
+  # if 'covar' is missing, make it intercept
+  if (missing(covar))
+    covar <- rep(1, nrow(G))
   
-  # if G is missing then it should be estimated from genotype  
+  # if 'G' is missing then it should be estimated from genotype  
   if (missing(G)) {
     G <- gensim.matrix(geno, ...)
   }
     
-  output <- c()
-  if (se) output.se <- c()
+  # fit the mixed model
+  rg.fit <- regress(y~covar, ~G, pos=TRUE)
   
-  for (p in pheno.cols) {
+  # estimate heritability
+  h2 <- as.numeric(rg.fit$sigma[1] / sum(rg.fit$sigma))
+
+  # calculate heritability se
+  if (se) {
+    v <- c(rg.fit$sigma[2], -rg.fit$sigma[1]) / sum(rg.fit$sigma^2)
+    h2.se <- rbind(v) %*% rg.fit$sigma.cov %*% cbind(v)
+    attr(h2, "se") <- as.numeric(sqrt(h2.se))
+  }  
   
-    # fit the mixed model
-    y <- pheno[,p]
-    rg.fit <- regress(y~covar, ~G)
-  
-    # estimate heritability
-    h2 <- as.numeric(rg.fit$sigma[1] / sum(rg.fit$sigma))
-    output <- c(output, h2)
-    if (se) {
-      v <- c(rg.fit$sigma[2], -rg.fit$sigma[1]) / sum(rg.fit$sigma^2)
-      h2.se <- rbind(v) %*% rg.fit$sigma.cov %*% cbind(v)
-      output.se <- c(output.se, h2.se)
-    }  
+  # if total decomposition is asked, estimate it
+  if (var.decompose) {
+    X <- model.matrix(~covar)
+    # drop Intercept if not estimated
+    if (ncol(X) == length(rg.fit$beta) + 1) {
+      X <- X[,-1]
+    }
+    var.fixed <- var(X %*% cbind(rg.fit$beta))
+    var.total <- var.fixed + sum(rg.fit$sigma)
+    h2.var.decompose <- c(var.fixed, rg.fit$sigma) / var.total
+    names(h2.var.decompose) <- c("fixed","background","noise")
+    attr(h2, "var.decompose") <- h2.var.decompose
   }
   
-  if (se) attr(output, "se") <- sqrt(output.se)
-  output
+  return(h2)
 }
