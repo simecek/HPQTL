@@ -71,7 +71,7 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
     if (length(geno$calls)<2 | length(geno$calls)>3) stop("Method 'allele-2f-additive' expects 2 founders.")
     
     f <- function(A) colSums(t(A) * (1:ncol(A)))
-    Zt <- scale(t(apply(geno$probs,3, f)))
+    Zt <- scale(t(apply(geno$probs[subjects,,markers],3, f)))
     K <- t(Zt) %*% Zt   
   }
   

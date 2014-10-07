@@ -48,7 +48,7 @@ test_that("fake.f2",{
   expect_equal(as.vector(f2.qtlrel), as.vector(f2.hpqtl.lmm$lod))
 })
 
-context('L1O results != LMM results')
+context('LOCO results != LMM results')
 
 test_that("fake.f2",{
   
@@ -56,7 +56,7 @@ test_that("fake.f2",{
   fake.f2 <- calc.genoprob(fake.f2)
 
   f2.hpqtl.lmm <- scan1(fake.f2, procedure="LMM")
-  f2.hpqtl.lmm_l1o <- scan1(fake.f2, procedure="LMM-L1O")
+  f2.hpqtl.lmm_l1o <- scan1(fake.f2, procedure="LOCO")
   expect_false(all(f2.hpqtl.lmm$lod == f2.hpqtl.lmm_l1o$lod))
 })
 
@@ -69,5 +69,5 @@ test_that("fake.f2",{
 #  
 #  trhold.lm <- scan1.threshold(fake.f2, procedure="LM")
 #  trhold.lmm <- scan1.threshold(fake.f2, procedure="LMM")
-#  trhold.lmm_l1o <- scan1.threshold(fake.f2, procedure="LMM-L1O")
+#  trhold.lmm_l1o <- scan1.threshold(fake.f2, procedure="LOCO")
 #})
