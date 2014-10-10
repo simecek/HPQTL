@@ -18,13 +18,17 @@ heritability <- function(y, covar, G, se=FALSE, var.decompose = FALSE, ...) {
   if (missing(covar))
     covar <- rep(1, nrow(G))
   
-  # if 'G' is missing then it should be estimated from genotype  
-  if (missing(G)) {
-    G <- gensim.matrix(geno, ...)
+  # if y is matrix, call heritability recursively
+  if (NCOL(y)>1) {
+    output <- rep(0, NCOL(y))
+    for (i in 1:NCOL(y)) {
+      output[i] <- heritability(y[,i], covar, G)
+    }
+    return(output)
   }
-    
+  
   # fit the mixed model
-  rg.fit <- regress(y~covar, ~G, pos=TRUE)
+  rg.fit <- regress(y~covar, ~G, pos=c(TRUE,TRUE))
   
   # estimate heritability
   h2 <- as.numeric(rg.fit$sigma[1] / sum(rg.fit$sigma))

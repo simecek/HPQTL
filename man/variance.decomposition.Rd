@@ -29,7 +29,7 @@ fake.f2 <- calc.genoprob(fake.f2)
 
 geno <- extract.geno(fake.f2)
 G <- gensim.matrix(geno)
-HPQTL:::variance.decomposition(fake.f2$pheno[,1], NULL, G)
+variance.decomposition(fake.f2$pheno[,1], NULL, G)
 }
 \keyword{manip}
 

@@ -17,10 +17,15 @@
 #' 
 #' geno <- extract.geno(fake.f2)
 #' G <- gensim.matrix(geno)
-#' HPQTL:::variance.decomposition(fake.f2$pheno[,1], NULL, G)
+#' variance.decomposition(fake.f2$pheno[,1], NULL, G)
+#' 
+#' @export
+
 
 variance.decomposition <- function(y, covar, G, package = c("regress", "QTLRel"), ...) {
   package = match.arg(package)
+  
+  if (missing(covar)) covar <- rep(1, nrow(G))
   
   if (package=="regress") {
     fit <- regress(y~.,~G, data=as.data.frame(cbind(y=y, covar))) 
