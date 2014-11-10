@@ -5,8 +5,8 @@
 \usage{
 gensim.matrix(geno, method = c("default", "allele-2f-additive",
   "allele-multif-additive", "allele-2f-weighted", "allele-multif-cosine"),
-  procedure = c("LMM", "LOCO", "LM"), subjects = seq(geno$subjects),
-  markers = seq(NROW(geno$markers)),
+  procedure = c("LMM", "LOCO", "LM", "POMOLOCO"),
+  subjects = seq(geno$subjects), markers = seq(NROW(geno$markers)),
   gensim.normalization = "sample-variance", ...)
 }
 \arguments{

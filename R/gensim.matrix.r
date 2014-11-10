@@ -23,7 +23,7 @@
 #' Glist <- gensim.matrix(geno, procedure="LOCO")
 
 gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allele-multif-additive', 'allele-2f-weighted', 'allele-multif-cosine'),
-                          procedure = c("LMM", "LOCO", "LM"), subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), 
+                          procedure = c("LMM", "LOCO", "LM","POMOLOCO"), subjects=seq(geno$subjects), markers = seq(NROW(geno$markers)), 
                           gensim.normalization="sample-variance", ...) {
   
   # match arguments
@@ -50,6 +50,16 @@ gensim.matrix <- function(geno, method=c('default', 'allele-2f-additive', 'allel
     for (c in geno$chromosomes$chr)
       Glist[[c]] <- gensim.matrix(geno, method=method, procedure="LMM", subjects=subjects, 
                                   markers = intersect(markers,which(geno$markers$chr!=c)), 
+                                  gensim.normalization=gensim.normalization)
+    return(Glist)
+  }
+  
+  # for POMOLOCO call it recursively for each chromosome
+  if (procedure == "POMOLOCO") {
+    Glist <- list()
+    for (c in geno$chromosomes$chr)
+      Glist[[c]] <- gensim.matrix(geno, method=method, procedure="LMM", subjects=subjects, 
+                                  markers = intersect(markers,which(geno$markers$chr==c)), 
                                   gensim.normalization=gensim.normalization)
     return(Glist)
   }
