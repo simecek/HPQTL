@@ -22,7 +22,12 @@ normalize.matrix <- function(W, method=c("sample-variance", "diagonal", "diagona
 
   # check parameters
   method <- match.arg(method)
-  stopifnot(class(W)=="matrix" & is.numeric(W))
+  stopifnot(class(W)=="matrix" | class(W)=="list")
+  
+  if (class(W)=="list")
+    lapply(W, normalize.matrix, method=method)
+  
+  stopifnot(is.numeric(W) & is.finite(W))
   
   if (method == "sample-variance") {
      n <- nrow(W)
