@@ -62,7 +62,8 @@ extract.geno <- function(cross, check.output = TRUE) {
     # table of markers and their positions
     markers <- data.frame(marker = do.call("c", lapply(cross$geno, function(x) names(x$map))),
                           chr = do.call("c", mapply(rep, x = names(nmar(cross)), each = nmar(cross), SIMPLIFY = FALSE)),
-                          pos = do.call("c", lapply(cross$geno, function(x) as.vector(x$map))))
+                          pos = do.call("c", lapply(cross$geno, function(x) as.vector(x$map))), 
+                          stringsAsFactors = FALSE)
     
     # if number of call differes
     if (length(unique(sapply(list.of.probs, ncol)))!=1) {
@@ -81,7 +82,7 @@ extract.geno <- function(cross, check.output = TRUE) {
                  subjects = subjects,    
                  calls = dimnames(cross$geno[[1]]$prob)[[3]],
                  markers = markers,
-                 chromosomes = data.frame(chr = names(cross$geno), type = as.vector(chrtype)))
+                 chromosomes = data.frame(chr = names(cross$geno), type = as.vector(chrtype), stringsAsFactors = FALSE))
   }
   
   # 3-dim DO array with attribute markers
@@ -95,12 +96,12 @@ extract.geno <- function(cross, check.output = TRUE) {
     # if markers or chromosomes are missing, try to get provisional ids
     if (is.null(markers)) {
       warning("Attribute 'markers' is missing")
-      markers <- data.frame(marker = dimnames(cross)[[3]])
+      markers <- data.frame(marker = dimnames(cross)[[3]], stringsAsFactors = FALSE)
       
     }
     if (is.null(chromosomes) & !is.null(markers$chr)) {
       chrs <- unique(markers$chr)
-      chromosomes <- data.frame(chr=chrs, type=ifelse(chrs=="X","X","A"))
+      chromosomes <- data.frame(chr=chrs, type=ifelse(chrs=="X","X","A"), stringsAsFactors = FALSE)
     }
 
     # remove attributes

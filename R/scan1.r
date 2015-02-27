@@ -4,10 +4,9 @@
 #' @param pheno data frame with phenotypes
 #' @param pheno.cols selection of phenotype's column(s)
 #' @param covar (additive) covariates
+#' @param intcovar interactive covariates (interact with QTL genotype)
 #' @param procedure procedure to do the inference, see Details
 #' @param G genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
-#' @param subjects subseting of subjects
-#' @param markers subseting of markers
 #' @param Intercept option to pass rotated intercept for LMM model
 #' @param ... parameters passed to \code{gensim.matrix}
 #' 
@@ -28,12 +27,19 @@
 #' plot(scan1(fake.f2, procedure="LMM"), incl.markers=FALSE)
 #' plot(scan1(fake.f2, procedure="LOCO"), incl.markers=FALSE)
 
-scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM","LOCO"), G, 
-                  subjects=seq(geno$subjects), markers=seq(NROW(geno$markers)), 
+scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NULL,
+                  procedure=c("LM","LMM","LOCO"), G, verbose=FALSE,
                   Intercept=rep(1,length(geno$subjects)), ...) {
  
   procedure <- match.arg(procedure)
 
+  # rankZ transform
+  normalize <- function(x) {
+    y <- rank(x)
+    y[is.na(x)] <- NA
+    qnorm(y / (sum(!is.na(x))+1))
+  }
+  
   # covar should be matrix, not data.frame
   if (!is.null(covar) & class(covar)!="matrix") {
     warning(paste("Class of 'covar' should be matrix, not", class(covar)))
@@ -46,78 +52,121 @@ scan1 <- function(geno, pheno, pheno.cols=1, covar=NULL, procedure=c("LM","LMM",
     if (missing(pheno) & "pheno" %in% names(geno))
       pheno <- geno$pheno
     geno <- extract.geno(geno)
-    subjects <- seq(geno$subjects)
-    markers <- seq(NROW(geno$markers))
   }  
   
   # if G is missing then it should be estimated from genotype  
   if (missing(G)) {
-    G <- gensim.matrix(geno, procedure=procedure, subjects=subjects, markers=markers, ...) 
+    G <- gensim.matrix(geno, procedure=procedure) 
   } else {
     if (procedure == "LM" & !is.null(G)) warning("For 'LM' procedure, gen. sim. matrix G is not used")
     if (procedure == "LMM" & !is.matrix(G)) stop("For 'LMM' procedure, G should be matrix")
     if (procedure == "LOCO" & !is.list(G)) stop("For 'LOCO' procedure, G should be a list of matrices")
   }  
   
+  # complete cases only
+  if (rankZ) y <- normalize(pheno[,pheno.col]) else y <- pheno[,pheno.col]
+  selected <- which(complete.cases(cbind(y,covar)))
+  n.selected <- length(selected) # number of individuals
+  if (is.null(covar)) covar <- cbind(Intercept)
+  
   # prepare output
   output <- data.frame(chr=as.character(geno$markers$chr), 
                        pos=geno$markers$pos, 
-                       lod=matrix(0, nrow=nrow(geno$markers), ncol = length(pheno.cols)), 
+                       lod=matrix(0, nrow=nrow(geno$markers), ncol = ifelse(is.null(intcovar), 1, 3)), 
                        row.names=geno$markers$marker,
                        stringsAsFactors = FALSE)
   class(output) <- c("scanone", "data.frame")
   
-  for (i in pheno.cols) {
-    
-    y <- pheno[,i]
-    index.i = which(pheno.cols==i)[1]
-    selected <- intersect(subjects, which(complete.cases(cbind(y,covar))))  
-    n.selected <- length(selected) # number of individuals
-
-    
-    # linear model
-    if (procedure == "LM") A <- NULL
-    # linear mixed model
-    if (procedure == "LMM")
-      A <- variance.decomposition(y[selected], covar[selected,], G[selected,selected],...)$A
-    # linear mixed model, leave one out
-    if (procedure == "LOCO") {
-      A <- list()
-      for (c in geno$chromosomes$chr) {
-        A[[c]] <- variance.decomposition(y[selected], covar[selected,], G[[c]][selected,selected],...)$A
-      }
-    } 
-    
-    # LOD caclulations are performed per chromosome
-    for (c in geno$chromosomes$chr) {
-      
-      # found appropriate A.chr matrix
-      if (procedure == "LOCO") A.chr <- A[[c]] else A.chr <- A
-      
-      # unless LM procedure, rotate y and covar
-      if (procedure != "LM") {
-        y.rotated <- A.chr %*% y[selected] 
-        covar.rotated <- A.chr %*% cbind(Intercept,covar)[selected,]
-      } else {
-        y.rotated <- y[selected] 
-        covar.rotated <- cbind(Intercept,covar)[selected,]
-      }
-      
-      # null model
-      rss0 <- sum(lsfit(y=y.rotated, x=covar.rotated, intercept=FALSE)$residuals^2)
-      
-      for (j in intersect(which(geno$markers$chr == c),markers)){
-        if (procedure != "LM") 
-          x.rotated <- A.chr %*% cbind(geno$probs[selected,,j],covar[selected,]) 
-        else 
-          x.rotated <- cbind(geno$probs[selected,,j], covar[selected,])
-        
-        rss1 <- sum(lsfit(y=y.rotated, x=x.rotated, intercept=FALSE)$residuals^2)
-        output[j,index.i+2] <- n.selected/2 * (log10(rss0) - log10(rss1))
-      } 
-    }
-  }
-    
-  return(output[markers,]) 
   
+  if (verbose) t1 <- Sys.time() # measure time for variance decomposition
+  
+  if (procedure == "LMM")
+    A <- variance.decomposition(y[selected], covar[selected,], G[selected,selected],...)$A
+  if (procedure == "LOCO") {
+    A <- foreach (c = geno$chromosomes$chr) %do% {
+      variance.decomposition(y[selected], covar[selected,], G[[c]][selected,selected],...)$A
+    }
+    names(A) <- geno$chromosomes$chr
+  }
+  
+  if (verbose) t2 <- Sys.time() # measure time for variance decomposition
+  if (verbose) message(paste("Variance decomposition takes", t2-t1, units(t2-t1)))
+  
+  ### Rotate probs, y and covars
+
+  
+  if (verbose) t1 <- Sys.time() # measure time for rotation
+  
+  # rotate genotype probabilities
+  probs.rot <- foreach (c = geno$chromosomes$chr) %do% {
+    if (verbose) message(paste("Rotating chromosome", c))
+    
+    switch(procedure,
+           LM = geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE],
+           LMM = { 
+             tmp <- geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE]
+             dimtmp <- dim(tmp) 
+             dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2]*dim(tmp)[3])
+             tmp <- A %*% tmp
+             dim(tmp) <- dimtmp
+             tmp
+           },
+           LOCO = { 
+             tmp <- geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE]
+             dimtmp <- dim(tmp) 
+             dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2]*dim(tmp)[3])
+             tmp <- A[[c]] %*% tmp
+             dim(tmp) <- dimtmp
+             tmp
+           })
+  }
+  names(probs.rot) <- geno$chromosomes$chr
+
+  if (!is.null(intcovar)) {
+    stop("Not yet implemented.")
+  }
+  
+  # rotate y
+  y.rot <- foreach (c = geno$chromosomes$chr) %do% {
+    switch(procedure,
+           LM = cbind(y[selected]),
+           LMM = A %*% cbind(y[selected]),
+           LOCO = A[[c]] %*% cbind(y[selected]))
+  }
+  names(y.rot) <- geno$chromosomes$chr
+  
+  covar.rot <- foreach (c = geno$chromosomes$chr) %do% {
+    switch(procedure,
+           LM = covar[selected,],
+           LMM = A %*% covar[selected,],
+           LOCO = A[[c]] %*% covar[selected,])
+  }
+  names(covar.rot) <- geno$chromosomes$chr
+  
+  if (verbose) t2 <- Sys.time() # measure time for variance decomposition
+  if (verbose) message(paste("Rotation takes", t2-t1, units(t2-t1)))
+ 
+  if (verbose) t1 <- Sys.time() # measure time for LOD calculation
+  
+  # null models
+  rss0 <- foreach (c = geno$chromosomes$chr, .combine="c") %do% {
+    tmp <- sum(lsfit(y=y.rot[[c]], x=covar.rot[[c]], intercept=FALSE)$residuals^2)
+    rep(tmp, dim(probs.rot[[c]])[3])
+  }
+  
+  # model with additive QTL
+  rss1 <- foreach (c = geno$chromosomes$chr, .combine="c") %do% {
+    foreach (i = 1:dim(probs.rot[[c]])[3], .combine="c") %do% {
+      sum(lsfit(y=y.rot[[c]], x=cbind(covar.rot[[c]],probs.rot[[c]][,,i]), intercept=FALSE)$residuals^2)
+    }
+  }  
+  
+  output$lod <-  n.selected/2 * (log10(rss0) - log10(rss1))
+  
+  if (verbose) t2 <- Sys.time() # measure time for variance decomposition
+  if (verbose) message(paste("LOD calculation takes", t2-t1, units(t2-t1)))
+
+  if (verbose) message("Finished")
+  
+  return(output)
 }

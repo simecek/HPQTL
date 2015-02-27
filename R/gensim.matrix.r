@@ -50,11 +50,13 @@ gensim.matrix <- function(geno, procedure = c("LMM", "LOCO", "POMOLOCO", "LM"),
   if (procedure == "LOCO") {
     Glist <- foreach (c = geno$chromosomes$chr) %do% {
       Reduce("+", GSM.per.chr[geno$chromosomes$chr!=c])
-    }  
+    }
+    names(Glist) <- geno$chromosomes$chr
     return(normalize.matrix(Glist, method = gensim.normalization))
   }
   
   if (procedure == "POMOLOCO") {
+    names(GSM.per.chr) <- geno$chromosomes$chr
     return(GSM.per.chr)
   }  
     
