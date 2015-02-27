@@ -25,10 +25,10 @@
 variance.decomposition <- function(y, covar, G, package = c("regress", "QTLRel"), ...) {
   package = match.arg(package)
   
-  if (missing(covar)) covar <- rep(1, nrow(G))
+  if (missing(covar)) covar <- cbind(rep(1, nrow(G)))
   
   if (package=="regress") {
-    fit <- regress(y~.,~G, data=as.data.frame(cbind(y=y, covar))) 
+    fit <- regress(y~covar,~G) 
     V <- fit$sigma["G"] * G + fit$sigma["In"] * diag(nrow(G))
     A <- half.inv(V)
     return(list(V=V, A=A, var.g = fit$sigma["G"], var.e = fit$sigma["In"]))

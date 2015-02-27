@@ -25,7 +25,7 @@ normalize.matrix <- function(W, method=c("sample-variance", "diagonal", "diagona
   stopifnot(class(W)=="matrix" | class(W)=="list")
   
   if (class(W)=="list")
-    lapply(W, normalize.matrix, method=method)
+    return(lapply(W, normalize.matrix, method=method))
   
   stopifnot(is.numeric(W) & is.finite(W))
   

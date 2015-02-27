@@ -35,12 +35,11 @@ gensim.matrix <- function(geno, procedure = c("LMM", "LOCO", "POMOLOCO", "LM"),
   if (procedure == "LM") return(NULL)
 
   # calculate GSM per chromosome
-  GSM.per.chr <- list()
-  for (c in geno$chromosomes$chr) {
+  GSM.per.chr <- foreach (c = geno$chromosomes$chr) %do% {
     if (verbose) message(paste("Processing GSM of "))
     tmp <- geno$probs[,,geno$markers$chr==c]
     dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2] * dim(tmp)[3])
-    GSM.per.chr[[c]] <- tcrossprod(tmp)
+    tcrossprod(tmp)
   }
   
   if (procedure == "LMM") {
@@ -49,9 +48,9 @@ gensim.matrix <- function(geno, procedure = c("LMM", "LOCO", "POMOLOCO", "LM"),
   }
   
   if (procedure == "LOCO") {
-    Glist <- list()
-    for (c in geno$chromosomes$chr)
-      Glist[[c]] <- Reduce("+", GSM.per.chr[geno$chromosomes$chr!=c])
+    Glist <- foreach (c = geno$chromosomes$chr) %do% {
+      Reduce("+", GSM.per.chr[geno$chromosomes$chr!=c])
+    }  
     return(normalize.matrix(Glist, method = gensim.normalization))
   }
   
