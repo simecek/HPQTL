@@ -72,7 +72,7 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
   # prepare output
   output <- data.frame(chr=as.character(geno$markers$chr), 
                        pos=geno$markers$pos, 
-                       lod=matrix(0, nrow=nrow(geno$markers), ncol = ifelse(is.null(intcovar), 1, 3)), 
+                       lod=matrix(0, nrow=nrow(geno$markers), ncol = 1), 
                        row.names=geno$markers$marker,
                        stringsAsFactors = FALSE)
   class(output) <- c("scanone", "data.frame")
@@ -125,7 +125,32 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
   names(probs.rot) <- geno$chromosomes$chr
 
   if (!is.null(intcovar)) {
-    stop("Not yet implemented.")
+    # rotate genotype probabilities
+    inter.rot <- foreach (c = geno$chromosomes$chr) %do% {
+      if (verbose) message(paste("Interactive covariate for chromosome", c))
+      
+      switch(procedure,
+             LM = geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE] * intcovar,
+             LMM = { 
+               tmp <- geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE]
+               dimtmp <- dim(tmp) 
+               dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2]*dim(tmp)[3])
+               tmp <- tmp * intcovar
+               tmp <- A %*% tmp
+               dim(tmp) <- dimtmp
+               tmp
+             },
+             LOCO = { 
+               tmp <- geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE]
+               dimtmp <- dim(tmp) 
+               dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2]*dim(tmp)[3])
+               tmp <- tmp * intcovar
+               tmp <- A[[c]] %*% tmp
+               dim(tmp) <- dimtmp
+               tmp
+             })
+    }
+    names(inter.rot) <- geno$chromosomes$chr
   }
   
   # rotate y
@@ -158,12 +183,29 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
   
   # model with additive QTL
   rss1 <- foreach (c = geno$chromosomes$chr, .combine="c") %do% {
-    foreach (i = 1:dim(probs.rot[[c]])[3], .combine="c") %do% {
+    if (verbose) message(paste("Processing chromosome", c))
+    foreach (i = 1:dim(probs.rot[[c]])[3], .combine="c") %do% {     
       sum(lsfit(y=y.rot[[c]], x=cbind(covar.rot[[c]],probs.rot[[c]][,,i]), intercept=FALSE)$residuals^2)
     }
   }  
   
   output$lod <-  n.selected/2 * (log10(rss0) - log10(rss1))
+  
+  # model with intcovar
+  if (!is.null(intcovar)) {
+    w <- getOption("warn")
+    options(warn = -1)
+    rss2 <- foreach (c = geno$chromosomes$chr, .combine="c") %do% {
+      if (verbose) message(paste("Processing chromosome", c))
+      foreach (i = 1:dim(probs.rot[[c]])[3], .combine="c") %do% {     
+        sum(lsfit(y=y.rot[[c]], x=cbind(covar.rot[[c]], probs.rot[[c]][,,i], inter.rot[[c]][,,i]), intercept=FALSE)$residuals^2)
+      }
+    }
+    options(warn = w)
+    
+    output$lod2 <-  n.selected/2 * (log10(rss1) - log10(rss2))
+    output$lod3 <-  n.selected/2 * (log10(rss0) - log10(rss2))
+  }
   
   if (verbose) t2 <- Sys.time() # measure time for variance decomposition
   if (verbose) message(paste("LOD calculation takes", t2-t1, units(t2-t1)))
