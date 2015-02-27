@@ -36,7 +36,7 @@ gensim.matrix <- function(geno, procedure = c("LMM", "LOCO", "POMOLOCO", "LM"),
 
   # calculate GSM per chromosome
   GSM.per.chr <- foreach (c = geno$chromosomes$chr) %do% {
-    if (verbose) message(paste("Processing GSM of "))
+    if (verbose) message(paste("Processing GSM of chromosome", c))
     tmp <- geno$probs[,,geno$markers$chr==c]
     dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2] * dim(tmp)[3])
     tcrossprod(tmp)

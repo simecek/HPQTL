@@ -77,13 +77,15 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
                        stringsAsFactors = FALSE)
   class(output) <- c("scanone", "data.frame")
   
-  
   if (verbose) t1 <- Sys.time() # measure time for variance decomposition
   
-  if (procedure == "LMM")
+  if (procedure == "LMM") {
+    if (verbose) message("Variance decomposition started.")
     A <- variance.decomposition(y[selected], covar[selected,], G[selected,selected],...)$A
+  }
   if (procedure == "LOCO") {
     A <- foreach (c = geno$chromosomes$chr) %do% {
+      if (verbose) message(paste("Variance decomposition for chromosome", c))
       variance.decomposition(y[selected], covar[selected,], G[[c]][selected,selected],...)$A
     }
     names(A) <- geno$chromosomes$chr
