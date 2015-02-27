@@ -130,12 +130,12 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
       if (verbose) message(paste("Interactive covariate for chromosome", c))
       
       switch(procedure,
-             LM = geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE] * intcovar,
+             LM = geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE] * intcovar[selected],
              LMM = { 
                tmp <- geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE]
                dimtmp <- dim(tmp) 
                dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2]*dim(tmp)[3])
-               tmp <- tmp * intcovar
+               tmp <- tmp * intcovar[selected]
                tmp <- A %*% tmp
                dim(tmp) <- dimtmp
                tmp
@@ -144,7 +144,7 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
                tmp <- geno$probs[selected,-1,geno$markers$chr==c, drop=FALSE]
                dimtmp <- dim(tmp) 
                dim(tmp) <- c(dim(tmp)[1], dim(tmp)[2]*dim(tmp)[3])
-               tmp <- tmp * intcovar
+               tmp <- tmp * intcovar[selected]
                tmp <- A[[c]] %*% tmp
                dim(tmp) <- dimtmp
                tmp
