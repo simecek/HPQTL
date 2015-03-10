@@ -12,6 +12,8 @@
 #' @keywords manip
 #' 
 #' @return Normalized matrix
+#' 
+#' @export
 #'
 #' @examples
 #' W <- matrix(c(1,1/2,1/2,1),2,2)

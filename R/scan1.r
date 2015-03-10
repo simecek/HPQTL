@@ -32,13 +32,6 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
                   Intercept=rep(1,length(geno$subjects)), ...) {
  
   procedure <- match.arg(procedure)
-
-  # rankZ transform
-  normalize <- function(x) {
-    y <- rank(x)
-    y[is.na(x)] <- NA
-    qnorm(y / (sum(!is.na(x))+1))
-  }
   
   # covar should be matrix, not data.frame
   if (!is.null(covar) & class(covar)!="matrix") {
