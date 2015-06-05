@@ -57,7 +57,7 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
   }  
   
   # complete cases only
-  if (rankZ) y <- normalize(pheno[,pheno.col]) else y <- pheno[,pheno.col]
+  if (rankZ) y <- HPQTL:::rankZ(pheno[,pheno.col]) else y <- pheno[,pheno.col]
   selected <- which(complete.cases(cbind(y,covar)))
   n.selected <- length(selected) # number of individuals
   if (is.null(covar)) covar <- cbind(Intercept)
