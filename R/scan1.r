@@ -4,7 +4,7 @@
 #' @param pheno data frame with phenotypes
 #' @param pheno.cols selection of phenotype's column(s)
 #' @param covar (additive) covariates
-#' @param intcovar interactive covariates (interact with QTL genotype)
+#' @param intcovar interactive covariates (interact with QTL genotype), typically a vector of zeroes and ones
 #' @param procedure procedure to do the inference, see Details
 #' @param G genetic similarity matrix or a list of genetic similarity matrices or \code{NULL}
 #' @param Intercept option to pass rotated intercept for LMM model
@@ -38,6 +38,9 @@ scan1 <- function(geno, pheno, pheno.col=1, rankZ=FALSE, covar=NULL, intcovar=NU
     warning(paste("Class of 'covar' should be matrix, not", class(covar)))
     covar = as.matrix(covar)
   }
+  
+  # check that int
+  if (!is.null(intcovar) & NCOL(intcovar)!=1) stop('Interactive covariate must be a numeric vector.')
   
   # if geno is not 'genotype.probs', export genotype
   if (!('genotype.probs' %in% class(geno))) {
